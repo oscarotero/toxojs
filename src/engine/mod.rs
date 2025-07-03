@@ -5,8 +5,12 @@ use deno_core::error::AnyError;
 use deno_core::extension;
 use deno_core::resolve_path;
 use deno_permissions::PermissionsContainer;
+use deno_tls::RootCertStoreProvider;
 use std::env::current_dir;
 use std::rc::Rc;
+use std::sync::Arc;
+
+pub mod transpile;
 
 pub struct Engine {
     runtime: JsRuntime,
@@ -21,19 +25,29 @@ extension!(
 impl Engine {
     pub fn new() -> Engine {
         let location = resolve_path(".", &current_dir().unwrap()).unwrap();
+        // let root_cert_store_provider: Arc<dyn RootCertStoreProvider> = ;
+        let unsafe_ignore_certificate_errors: Vec<String> = vec![];
+
         let extensions: Vec<Extension> = vec![
+            deno_telemetry::deno_telemetry::init(),
             deno_webidl::deno_webidl::init(),
             deno_console::deno_console::init(),
             deno_url::deno_url::init(),
             deno_web::deno_web::init::<PermissionsContainer>(Default::default(), Some(location)),
-            deno_net::deno_net::init::<PermissionsContainer>(None, None),
-            // deno_fetch::deno_fetch::init::<PermissionsContainer>(Default::default()),
+            deno_fetch::deno_fetch::init::<PermissionsContainer>(Default::default()),
+            deno_net::deno_net::init::<PermissionsContainer>(
+                None,
+                Some(unsafe_ignore_certificate_errors),
+            ),
             toxo_setup::init(),
         ];
 
         let runtime = JsRuntime::new(RuntimeOptions {
             module_loader: Some(Rc::new(deno_core::FsModuleLoader)),
             extensions,
+            extension_transpiler: Some(Rc::new(|specifier, source| {
+                transpile::maybe_transpile_source(specifier, source)
+            })),
             ..Default::default()
         });
 
