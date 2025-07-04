@@ -1,8 +1,13 @@
 import foo from "./proba.js";
+// import { Loader } from "https://raw.githubusercontent.com/oom-components/page-loader/refs/heads/main/src/page-loader.js";
 
 performance.mark("start");
 
+console.log(import.meta.url);
+
+// console.log(Loader);
 console.log(foo());
+
 console.log(new URL("https://example.com"));
 console.log(new URLSearchParams("key=value&foo=bar"));
 console.log(new URLPattern({ pathname: "/path/:id" }).exec("/path/123"));
@@ -76,11 +81,11 @@ setTimeout(() => {
   console.log("Timeout executed after 1 second");
 }, 1000);
 
-console.log(localStorage);
-let number = parseInt(localStorage.getItem("number") || "0", 10);
-number += 1;
-localStorage.setItem("number", number.toString());
-console.log("Number in localStorage:", number);
+// console.log(localStorage);
+// let number = parseInt(localStorage.getItem("number") || "0", 10);
+// number += 1;
+// localStorage.setItem("number", number.toString());
+// console.log("Number in localStorage:", number);
 
 let number2 = parseInt(sessionStorage.getItem("number") || "0", 10);
 number2 += 1;
