@@ -47,7 +47,7 @@ Object.defineProperty(globalThis, "URLPattern", {
 
 /** deno_web */
 import * as infra from "ext:deno_web/00_infra.js";
-import * as DOMException from "ext:deno_web/01_dom_exception.js";
+import * as domException from "ext:deno_web/01_dom_exception.js";
 import * as mimesniff from "ext:deno_web/01_mimesniff.js";
 import * as event from "ext:deno_web/02_event.js";
 import * as structuredClone from "ext:deno_web/02_structured_clone.js";
@@ -112,7 +112,7 @@ Object.defineProperty(globalThis, "DecompressionStream", {
 
 // deno_web (DOMException)
 Object.defineProperty(globalThis, "DOMException", {
-  value: DOMException,
+  value: domException.DOMException,
   enumerable: false,
   configurable: true,
   writable: true,
@@ -497,6 +497,23 @@ Object.defineProperty(globalThis, "Headers", {
 
 Object.defineProperty(globalThis, "FormData", {
   value: formData.FormData,
+  enumerable: false,
+  configurable: true,
+  writable: true,
+});
+
+/** deno_webstorage */
+import * as webStorage from "ext:deno_webstorage/01_webstorage.js";
+
+Object.defineProperty(globalThis, "localStorage", {
+  value: webStorage.localStorage(),
+  enumerable: false,
+  configurable: true,
+  writable: true,
+});
+
+Object.defineProperty(globalThis, "sessionStorage", {
+  value: webStorage.sessionStorage(),
   enumerable: false,
   configurable: true,
   writable: true,

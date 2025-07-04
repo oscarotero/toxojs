@@ -42,6 +42,7 @@ impl Engine {
             deno_url::deno_url::init(),
             deno_web::deno_web::lazy_init::<PermissionsContainer>(),
             deno_fetch::deno_fetch::lazy_init::<PermissionsContainer>(),
+            deno_webstorage::deno_webstorage::lazy_init(),
             deno_crypto::deno_crypto::lazy_init(),
             deno_net::deno_net::lazy_init::<PermissionsContainer>(),
             deno_tls::deno_tls::init(),
@@ -82,6 +83,7 @@ impl Engine {
                 deno_fetch::deno_fetch::args::<PermissionsContainer>(deno_fetch::Options {
                     ..Default::default()
                 }),
+                deno_webstorage::deno_webstorage::args(Some(current_dir.clone())),
                 deno_crypto::deno_crypto::args(Default::default()),
                 deno_net::deno_net::args::<PermissionsContainer>(
                     Default::default(),

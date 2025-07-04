@@ -46,8 +46,20 @@ console.log(
   }),
 );
 
-const response = await fetch("http://httpforever.com/");
-console.log(await response.text());
+const abortSignal = new AbortController();
+fetch("http://httpforever.com/", {
+  signal: abortSignal.signal,
+}).then((response) => {
+  console.log("Response received:", response.status);
+  return response.text();
+}).catch((error) => {
+  if (error.name === "AbortError") {
+    console.log("Request was aborted");
+  } else {
+    console.error("Fetch error:", error);
+  }
+});
+abortSignal.abort(); // Abort the request
 
 performance.mark("end");
 console.log(
@@ -63,3 +75,14 @@ export default function bar() {
 setTimeout(() => {
   console.log("Timeout executed after 1 second");
 }, 1000);
+
+console.log(localStorage);
+let number = parseInt(localStorage.getItem("number") || "0", 10);
+number += 1;
+localStorage.setItem("number", number.toString());
+console.log("Number in localStorage:", number);
+
+let number2 = parseInt(sessionStorage.getItem("number") || "0", 10);
+number2 += 1;
+sessionStorage.setItem("number", number2.toString());
+console.log("Number in sessionStorage:", number2);
