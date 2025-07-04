@@ -4575,12 +4575,14 @@ dependencies = [
  "deno_error",
  "deno_fetch",
  "deno_net",
+ "deno_path_util",
  "deno_permissions",
  "deno_telemetry",
  "deno_tls",
  "deno_url",
  "deno_web",
  "deno_webidl",
+ "sys_traits",
  "tokio",
 ]
 

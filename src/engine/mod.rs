@@ -7,7 +7,11 @@ use deno_core::resolve_path;
 use deno_permissions::PermissionsContainer;
 use std::env::current_dir;
 use std::rc::Rc;
+use std::sync::Arc;
 
+use crate::engine::permissions::RuntimePermissionDescriptorParser;
+
+pub mod permissions;
 pub mod transpile;
 
 pub struct Engine {
@@ -20,8 +24,16 @@ extension!(
     esm = [dir "src/engine", "bootstrap.js"]
 );
 
+pub mod sys {
+    #[allow(clippy::disallowed_types)] // ok, definition
+    pub type CliSys = sys_traits::impls::RealSys;
+}
+
 impl Engine {
     pub fn new() -> Engine {
+        let parser = RuntimePermissionDescriptorParser::new();
+        let permissions = PermissionsContainer::allow_all(Arc::new(parser));
+
         let extensions: Vec<Extension> = vec![
             deno_telemetry::deno_telemetry::init(),
             deno_webidl::deno_webidl::init(),
@@ -43,6 +55,10 @@ impl Engine {
             })),
             ..Default::default()
         });
+        let state = runtime.op_state();
+        let mut state = state.borrow_mut();
+
+        state.put::<PermissionsContainer>(permissions);
 
         Engine { runtime }
     }

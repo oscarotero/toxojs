@@ -1,6 +1,6 @@
 import foo from "./proba.js";
 
-// performance.mark("start");
+performance.mark("start");
 
 console.log(foo());
 console.log(new URL("https://example.com"));
@@ -46,10 +46,15 @@ console.log(
   }),
 );
 
-// const response = fetch("http://httpforever.com/")
+// const response = fetch("http://httpforever.com/");
+// console.log(response);
 
-// performance.mark("end");
-// console.log("Execution time:", performance.measure("Execution time", "start", "end").duration, "ms");
+performance.mark("end");
+console.log(
+  "Execution time:",
+  performance.measure("Execution time", "start", "end").duration,
+  "ms",
+);
 
 export default function bar() {
   return 3 + 4;
