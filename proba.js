@@ -46,8 +46,8 @@ console.log(
   }),
 );
 
-// const response = fetch("http://httpforever.com/");
-// console.log(response);
+const response = await fetch("http://httpforever.com/");
+console.log(await response.text());
 
 performance.mark("end");
 console.log(

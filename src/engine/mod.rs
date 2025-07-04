@@ -5,6 +5,7 @@ use deno_core::error::AnyError;
 use deno_core::extension;
 use deno_core::resolve_path;
 use deno_permissions::PermissionsContainer;
+use deno_tls::rustls;
 use std::env::current_dir;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -59,6 +60,10 @@ impl Engine {
         let mut state = state.borrow_mut();
 
         state.put::<PermissionsContainer>(permissions);
+
+        rustls::crypto::aws_lc_rs::default_provider()
+            .install_default()
+            .unwrap();
 
         Engine { runtime }
     }
