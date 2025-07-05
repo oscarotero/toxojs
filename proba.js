@@ -1,11 +1,13 @@
 import foo from "./proba.js";
-// import { Loader } from "https://raw.githubusercontent.com/oom-components/page-loader/refs/heads/main/src/page-loader.js";
+import { Loader } from "https://raw.githubusercontent.com/oom-components/page-loader/refs/heads/main/src/page-loader.js";
+import hello from "./hello.json" with { type: "bytes" };
 
 performance.mark("start");
 
+console.log(hello);
 console.log(import.meta.url);
 
-// console.log(Loader);
+console.log(Loader);
 console.log(foo());
 
 console.log(new URL("https://example.com"));

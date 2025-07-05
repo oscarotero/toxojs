@@ -2,6 +2,12 @@
 
 Micro JS Runtime.
 
+## Import supported
+
+- File imports
+- HTTP imports
+- Import attributes (json, text, bytes)
+
 ## Web APIs supported
 
 - console

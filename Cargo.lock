@@ -4657,6 +4657,8 @@ dependencies = [
  "deno_web",
  "deno_webidl",
  "deno_webstorage",
+ "http",
+ "http-body-util",
  "sys_traits",
  "tokio",
 ]

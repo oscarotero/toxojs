@@ -3,20 +3,23 @@ use deno_core::JsRuntime;
 use deno_core::RuntimeOptions;
 use deno_core::error::AnyError;
 use deno_core::extension;
-use deno_core::resolve_path;
+use deno_core::resolve_url_or_path;
 use deno_permissions::PermissionsContainer;
 use deno_tls::rustls;
 use std::env::current_dir;
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
 
 use crate::engine::permissions::RuntimePermissionDescriptorParser;
 
+pub mod module_loader;
 pub mod permissions;
 pub mod transpile;
 
 pub struct Engine {
     runtime: JsRuntime,
+    initial_cwd: PathBuf,
 }
 
 extension!(
@@ -48,9 +51,14 @@ impl Engine {
             deno_tls::deno_tls::init(),
             toxo_setup::init(),
         ];
-
+        let initial_cwd = current_dir().unwrap();
+        rustls::crypto::aws_lc_rs::default_provider()
+            .install_default()
+            .unwrap();
+        // let module_loader = deno_core::FsModuleLoader;
+        let module_loader = module_loader::ToxoModuleLoader::new();
         let runtime = JsRuntime::new(RuntimeOptions {
-            module_loader: Some(Rc::new(deno_core::FsModuleLoader)),
+            module_loader: Some(Rc::new(module_loader)),
             extensions,
             extension_transpiler: Some(Rc::new(|specifier, source| {
                 transpile::maybe_transpile_source(specifier, source)
@@ -62,17 +70,16 @@ impl Engine {
 
         state.put::<PermissionsContainer>(permissions);
 
-        rustls::crypto::aws_lc_rs::default_provider()
-            .install_default()
-            .unwrap();
-
-        Engine { runtime }
+        Engine {
+            runtime,
+            initial_cwd,
+        }
     }
 
     pub async fn run_main(&mut self, file_path: &str) -> Result<(), AnyError> {
         let runtime = &mut self.runtime;
-        let current_dir = current_dir()?;
-        let specifier = resolve_path(file_path, &current_dir)?;
+        let initial_cwd = &self.initial_cwd;
+        let specifier = resolve_url_or_path(file_path, initial_cwd)?;
 
         runtime
             .lazy_init_extensions(vec![
@@ -83,7 +90,7 @@ impl Engine {
                 deno_fetch::deno_fetch::args::<PermissionsContainer>(deno_fetch::Options {
                     ..Default::default()
                 }),
-                deno_webstorage::deno_webstorage::args(Some(current_dir.clone())),
+                deno_webstorage::deno_webstorage::args(Some(initial_cwd.clone())),
                 deno_crypto::deno_crypto::args(Default::default()),
                 deno_net::deno_net::args::<PermissionsContainer>(
                     Default::default(),

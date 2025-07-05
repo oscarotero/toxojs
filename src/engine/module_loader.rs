@@ -1,0 +1,130 @@
+use std::path::PathBuf;
+
+use deno_ast::ModuleSpecifier;
+use deno_core::{
+    ModuleLoadResponse, ModuleLoader, ModuleSource, ModuleSourceCode, ModuleType,
+    RequestedModuleType, error::ModuleLoaderError, futures::FutureExt, resolve_import, url::Url,
+};
+use deno_error::JsErrorBox;
+use deno_fetch::{Client, ReqBody, create_http_client};
+use http::Request;
+use http_body_util::BodyExt;
+
+pub struct ToxoModuleLoader {
+    client: Client,
+}
+
+impl ModuleLoader for ToxoModuleLoader {
+    fn resolve(
+        &self,
+        raw_specifier: &str,
+        raw_referrer: &str,
+        _kind: deno_core::ResolutionKind,
+    ) -> Result<ModuleSpecifier, ModuleLoaderError> {
+        resolve_import(raw_specifier, raw_referrer).map_err(|e| e.into())
+    }
+
+    fn load(
+        &self,
+        specifier: &deno_core::ModuleSpecifier,
+        _maybe_referrer: Option<&deno_core::ModuleSpecifier>,
+        _is_dynamic: bool,
+        requested_module_type: RequestedModuleType,
+    ) -> ModuleLoadResponse {
+        let specifier = specifier.clone();
+        let client = self.client.clone();
+
+        let fut = async move {
+            // Calculate the module type
+            let module_type = match &requested_module_type {
+                RequestedModuleType::Text => ModuleType::Text,
+                RequestedModuleType::Bytes => ModuleType::Bytes,
+                RequestedModuleType::Json => {
+                    if !has_extension(&specifier, "json") {
+                        return Err(ModuleLoaderError::JsonMissingAttribute);
+                    }
+                    ModuleType::Json
+                }
+                RequestedModuleType::Other(ty) => ModuleType::Other(ty.clone()),
+                _ => ModuleType::JavaScript,
+            };
+
+            // Load the module
+            let code = if specifier.scheme() == "file" {
+                read_file(&specifier)
+            } else {
+                read_url(&client, &specifier).await
+            };
+
+            match code {
+                Ok(code) => {
+                    let module = ModuleSource::new(
+                        module_type,
+                        ModuleSourceCode::Bytes(code.into_boxed_slice().into()),
+                        &specifier,
+                        None,
+                    );
+                    Ok(module)
+                }
+                Err(err) => Err(ModuleLoaderError::from(err)),
+            }
+        }
+        .boxed_local();
+
+        ModuleLoadResponse::Async(fut)
+    }
+}
+
+impl ToxoModuleLoader {
+    pub fn new() -> ToxoModuleLoader {
+        let user_agent = "Toxeiro";
+        let client = create_http_client(user_agent, Default::default()).unwrap();
+
+        ToxoModuleLoader { client }
+    }
+}
+
+fn read_file(specifier: &Url) -> Result<Vec<u8>, JsErrorBox> {
+    let path = specifier.to_file_path().map_err(|_| {
+        JsErrorBox::generic(format!(
+            "Provided module specifier \"{specifier}\" is not a valid file URL."
+        ))
+    })?;
+
+    std::fs::read(path).map_err(|source| JsErrorBox::from_err(source))
+}
+
+async fn read_url(client: &Client, specifier: &Url) -> Result<Vec<u8>, JsErrorBox> {
+    let body = ReqBody::empty();
+    let mut request = Request::new(body);
+    *request.uri_mut() = http::Uri::try_from(specifier.as_str()).unwrap();
+
+    let response = match client.clone().send(request).await {
+        Ok(response) => response,
+        Err(err) => return Err(JsErrorBox::from_err(err)),
+    };
+
+    if response.status() == 404 {
+        return Err(JsErrorBox::generic(format!("Module {specifier} not found")));
+    }
+    if !response.status().is_success() {
+        let status = response.status();
+
+        return Err(JsErrorBox::generic(format!(
+            "Cannot fetch {specifier}. Served returned {status} code."
+        )));
+    }
+
+    let body = response.into_body().collect().await;
+    let bytes = body.unwrap().to_bytes();
+    let code: Vec<u8> = bytes.into();
+    Ok(code)
+}
+
+fn has_extension(url: &Url, extension: &str) -> bool {
+    let path = PathBuf::from(url.path());
+    if let Some(ext) = path.extension() {
+        return ext.to_string_lossy().to_lowercase() == extension;
+    }
+    false
+}
