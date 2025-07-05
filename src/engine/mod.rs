@@ -3,9 +3,10 @@ use deno_core::JsRuntime;
 use deno_core::RuntimeOptions;
 use deno_core::error::AnyError;
 use deno_core::extension;
-use deno_core::resolve_url_or_path;
+use deno_core::url::Url;
 use deno_permissions::PermissionsContainer;
 use deno_tls::rustls;
+use std::env::current_dir;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -18,7 +19,8 @@ pub mod transpile;
 
 pub struct Engine {
     runtime: JsRuntime,
-    initial_cwd: PathBuf,
+    main_module: Url,
+    main_directory: PathBuf,
 }
 
 extension!(
@@ -33,8 +35,21 @@ pub mod sys {
 }
 
 impl Engine {
-    pub fn new(initial_cwd: PathBuf) -> Engine {
-        let parser = RuntimePermissionDescriptorParser::new(initial_cwd.clone());
+    pub fn new(main_module: Url) -> Engine {
+        // Calculate the current directory
+        let main_directory = if main_module.scheme() == "file" {
+            main_module
+                .to_file_path()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .to_path_buf()
+        } else {
+            current_dir().unwrap()
+        };
+
+        // Init the engine extensions to provide Web APIs
+        let parser = RuntimePermissionDescriptorParser::new(main_directory.clone());
         let permissions = PermissionsContainer::allow_all(Arc::new(parser));
 
         let extensions: Vec<Extension> = vec![
@@ -51,11 +66,15 @@ impl Engine {
             toxo_setup::init(),
         ];
 
+        // This is required by some net related ops
         rustls::crypto::aws_lc_rs::default_provider()
             .install_default()
             .unwrap();
 
-        let module_loader = module_loader::ToxoModuleLoader::new(&initial_cwd);
+        // Initialize the module loader
+        let module_loader = module_loader::ToxoModuleLoader::new(main_module.clone());
+
+        // Create the JavaScript runtime
         let runtime = JsRuntime::new(RuntimeOptions {
             module_loader: Some(Rc::new(module_loader)),
             extensions,
@@ -64,6 +83,8 @@ impl Engine {
             })),
             ..Default::default()
         });
+
+        // Store the permissions in the runtime state
         let state = runtime.op_state();
         let mut state = state.borrow_mut();
 
@@ -71,15 +92,18 @@ impl Engine {
 
         Engine {
             runtime,
-            initial_cwd,
+            main_module,
+            main_directory,
         }
     }
 
-    pub async fn run_main(&mut self, file_path: &str) -> Result<(), AnyError> {
+    /** Run the JavaScript code */
+    pub async fn run(&mut self) -> Result<(), AnyError> {
         let runtime = &mut self.runtime;
-        let initial_cwd = &self.initial_cwd;
-        let specifier = resolve_url_or_path(file_path, initial_cwd)?;
+        let specifier = &self.main_module;
+        let main_directory = &self.main_directory;
 
+        //Initialize the extensions configured as lazy_init
         runtime
             .lazy_init_extensions(vec![
                 deno_web::deno_web::args::<PermissionsContainer>(
@@ -89,7 +113,7 @@ impl Engine {
                 deno_fetch::deno_fetch::args::<PermissionsContainer>(deno_fetch::Options {
                     ..Default::default()
                 }),
-                deno_webstorage::deno_webstorage::args(Some(initial_cwd.clone())),
+                deno_webstorage::deno_webstorage::args(Some(main_directory.clone())),
                 deno_crypto::deno_crypto::args(Default::default()),
                 deno_net::deno_net::args::<PermissionsContainer>(
                     Default::default(),
@@ -98,6 +122,7 @@ impl Engine {
             ])
             .unwrap();
 
+        // Run the module
         let main_id = runtime.load_main_es_module(&specifier).await?;
         let main_result = runtime.mod_evaluate(main_id);
         runtime.run_event_loop(Default::default()).await?;

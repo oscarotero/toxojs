@@ -15,7 +15,44 @@ use import_map::{ImportMap, parse_from_json};
 pub struct ToxoModuleLoader {
     client: Client,
     import_map: Option<ImportMap>,
-    initial_url: Url,
+    main_module: Url,
+}
+
+impl ToxoModuleLoader {
+    pub fn new(main_module: Url) -> ToxoModuleLoader {
+        let user_agent = "Toxeiro";
+        let client = create_http_client(user_agent, Default::default()).unwrap();
+
+        // Detect the import map only if it's in the filesystem
+        let import_map = if main_module.scheme() == "file" {
+            let import_map = main_module.join("./import_map.json").unwrap();
+            let file_path = import_map.to_file_path().unwrap();
+            if file_path.exists() {
+                Some(import_map)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        // If the import map was detected, load and parse it
+        let import_map: Option<ImportMap> = if let Some(url) = import_map {
+            let content = read_file(&url).unwrap();
+            let content = str::from_utf8(&content).unwrap();
+            let map = parse_from_json(url, content).unwrap();
+
+            Some(map.import_map)
+        } else {
+            None
+        };
+
+        ToxoModuleLoader {
+            client,
+            import_map,
+            main_module: main_module,
+        }
+    }
 }
 
 impl ModuleLoader for ToxoModuleLoader {
@@ -29,7 +66,7 @@ impl ModuleLoader for ToxoModuleLoader {
 
         if let Some(import_map) = import_map {
             let referrer = if raw_referrer == "." {
-                &self.initial_url
+                &self.main_module
             } else {
                 &Url::parse(raw_referrer).unwrap()
             };
@@ -99,36 +136,6 @@ impl ModuleLoader for ToxoModuleLoader {
         .boxed_local();
 
         ModuleLoadResponse::Async(fut)
-    }
-}
-
-impl ToxoModuleLoader {
-    pub fn new(initial_cwd: &PathBuf) -> ToxoModuleLoader {
-        let user_agent = "Toxeiro";
-        let client = create_http_client(user_agent, Default::default()).unwrap();
-        let initial_url = Url::from_file_path(initial_cwd).unwrap();
-        let import_map = initial_cwd.join("import_map.json");
-        let import_map = if import_map.exists() {
-            Some(Url::from_file_path(import_map).unwrap())
-        } else {
-            None
-        };
-
-        let import_map: Option<ImportMap> = if let Some(url) = import_map {
-            let content = read_file(&url).unwrap();
-            let content = str::from_utf8(&content).unwrap();
-            let map = parse_from_json(url, content).unwrap();
-
-            Some(map.import_map)
-        } else {
-            None
-        };
-
-        ToxoModuleLoader {
-            client,
-            import_map,
-            initial_url,
-        }
     }
 }
 
