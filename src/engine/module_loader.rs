@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use data_url::DataUrl;
 use deno_ast::ModuleSpecifier;
 use deno_core::{
     ModuleLoadResponse, ModuleLoader, ModuleSource, ModuleSourceCode, ModuleType,
@@ -46,14 +47,24 @@ impl ModuleLoader for ToxoModuleLoader {
                     ModuleType::Json
                 }
                 RequestedModuleType::Other(ty) => ModuleType::Other(ty.clone()),
-                _ => ModuleType::JavaScript,
+                _ => {
+                    if has_extension(&specifier, "wasm") {
+                        ModuleType::Wasm
+                    } else if has_extension(&specifier, "json") {
+                        return Err(ModuleLoaderError::JsonMissingAttribute);
+                    } else {
+                        ModuleType::JavaScript
+                    }
+                }
             };
 
             // Load the module
             let code = if specifier.scheme() == "file" {
                 read_file(&specifier)
+            } else if specifier.scheme() == "data" {
+                read_data(&specifier, &module_type)
             } else {
-                read_url(&client, &specifier).await
+                read_url(&specifier, &client).await
             };
 
             match code {
@@ -94,11 +105,39 @@ fn read_file(specifier: &Url) -> Result<Vec<u8>, JsErrorBox> {
     std::fs::read(path).map_err(|source| JsErrorBox::from_err(source))
 }
 
-async fn read_url(client: &Client, specifier: &Url) -> Result<Vec<u8>, JsErrorBox> {
+fn read_data(specifier: &Url, module_type: &ModuleType) -> Result<Vec<u8>, JsErrorBox> {
+    let url = DataUrl::process(specifier.as_str());
+    match url {
+        Ok(url) => {
+            let (body, _) = url.decode_to_vec().unwrap();
+            let mime = url.mime_type();
+            let mime = format!("{}/{}", mime.type_, mime.subtype).to_lowercase();
+            match module_type {
+                ModuleType::JavaScript => {
+                    if mime == "application/javascript" || mime == "text/javascript" {
+                        Ok(body)
+                    } else {
+                        Err(JsErrorBox::generic("Invalid mime type of data URL"))
+                    }
+                }
+                ModuleType::Json => {
+                    if mime == "application/json" {
+                        Ok(body)
+                    } else {
+                        Err(JsErrorBox::generic("Invalid mime type of data URL"))
+                    }
+                }
+                _ => Ok(body),
+            }
+        }
+        Err(_) => Err(JsErrorBox::generic("Unable to load data: specifier")),
+    }
+}
+
+async fn read_url(specifier: &Url, client: &Client) -> Result<Vec<u8>, JsErrorBox> {
     let body = ReqBody::empty();
     let mut request = Request::new(body);
     *request.uri_mut() = http::Uri::try_from(specifier.as_str()).unwrap();
-
     let response = match client.clone().send(request).await {
         Ok(response) => response,
         Err(err) => return Err(JsErrorBox::from_err(err)),

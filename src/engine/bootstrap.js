@@ -10,11 +10,10 @@ Object.defineProperty(globalThis, webidl.brand, {
 
 /** deno_console */
 import * as console from "ext:deno_console/01_console.js";
+const Deno = globalThis.Deno || {};
 
 Object.defineProperty(globalThis, "console", {
-  value: new console.Console((msg, level) =>
-    globalThis.Deno.core.print(msg, level > 1)
-  ),
+  value: new console.Console((msg, level) => Deno.core.print(msg, level > 1)),
   enumerable: false,
   configurable: true,
   writable: true,
@@ -514,6 +513,14 @@ Object.defineProperty(globalThis, "localStorage", {
 
 Object.defineProperty(globalThis, "sessionStorage", {
   value: webStorage.sessionStorage(),
+  enumerable: false,
+  configurable: true,
+  writable: true,
+});
+
+// Remove Deno global
+Object.defineProperty(globalThis, "Deno", {
+  value: undefined,
   enumerable: false,
   configurable: true,
   writable: true,

@@ -6,6 +6,7 @@ Micro JS Runtime.
 
 - File imports
 - HTTP imports
+- data: imports
 - Import attributes (json, text, bytes)
 
 ## Web APIs supported
@@ -82,5 +83,5 @@ toxo example.js
 ## Development
 
 ```sh
-cargo run proba.js
+cargo run example.js
 ```
