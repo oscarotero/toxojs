@@ -1,6 +1,16 @@
 # TOXO
 
-Micro JS Runtime.
+Minimalist JavaScript Runtime.
+
+This project is an experimental JavaScript runtime built as a learning exercise
+in Rust. Most of the code is based on [Deno](https://github.com/denoland/). Huge
+thanks to the Deno team for their amazing open source work!
+
+## How to use it?
+
+```sh
+toxo example.js
+```
 
 ## Import supported
 
@@ -78,7 +88,3 @@ Micro JS Runtime.
 - localStorage
 - sessionStorage
 - WebAssembly
-
-```sh
-toxo example.js
-```
