@@ -8,8 +8,8 @@ Micro JS Runtime.
 - HTTP imports
 - data: imports
 - Import attributes (json, text, bytes)
-- Import maps (Detected automatically from the `import_map.json` file in the
-  current directory)
+- Import maps (The file `import_map.json` in the current directory is loaded
+  automatically)
 
 ## Web APIs supported
 
@@ -80,10 +80,4 @@ Micro JS Runtime.
 
 ```sh
 toxo example.js
-```
-
-## Development
-
-```sh
-cargo run example.js
 ```
