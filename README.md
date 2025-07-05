@@ -18,8 +18,8 @@ toxo example.js
 - HTTP imports
 - data: imports
 - Import attributes (json, text, bytes)
-- Import maps (The file `import_map.json` in the current directory is loaded
-  automatically)
+- Import maps (Place a `import_map.json` file in the same directory as the entry
+  point)
 
 ## Web APIs supported
 
@@ -86,5 +86,7 @@ toxo example.js
 - Headers
 - FormData
 - localStorage
+  > [!Info]: The data is stored in the `local_storage` file in the same
+  > directory as the main module.
 - sessionStorage
 - WebAssembly

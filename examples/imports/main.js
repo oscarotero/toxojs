@@ -17,3 +17,15 @@ console.log("extname result:", extname("example.txt"));
 console.log(hello());
 console.log(hello2());
 console.log(getExtension("example.txt"));
+
+console.log("hello from", import.meta.url);
+console.log("hello resolved", import.meta.resolve("./ola.js"));
+
+if (true) {
+  import("./ola.js").then((module) => {
+    console.log("dynamic import:", module.ola());
+  });
+  import("./import_map.json", { with: { type: "json" } }).then((module) => {
+    console.log("dynamic import with import map:", module.default);
+  });
+}
