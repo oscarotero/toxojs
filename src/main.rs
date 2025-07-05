@@ -1,4 +1,4 @@
-use std::env;
+use std::env::{self, current_dir};
 use tokio::runtime::Builder;
 use toxo::engine::Engine;
 
@@ -12,7 +12,8 @@ fn main() {
         }
     };
 
-    let mut engine = Engine::new();
+    let initial_cwd = current_dir().unwrap();
+    let mut engine = Engine::new(initial_cwd);
     let result = engine.run_main(file_path);
     let runtime = Builder::new_current_thread().enable_all().build().unwrap();
 

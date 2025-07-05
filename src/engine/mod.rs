@@ -6,7 +6,6 @@ use deno_core::extension;
 use deno_core::resolve_url_or_path;
 use deno_permissions::PermissionsContainer;
 use deno_tls::rustls;
-use std::env::current_dir;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -34,8 +33,8 @@ pub mod sys {
 }
 
 impl Engine {
-    pub fn new() -> Engine {
-        let parser = RuntimePermissionDescriptorParser::new();
+    pub fn new(initial_cwd: PathBuf) -> Engine {
+        let parser = RuntimePermissionDescriptorParser::new(initial_cwd.clone());
         let permissions = PermissionsContainer::allow_all(Arc::new(parser));
 
         let extensions: Vec<Extension> = vec![
@@ -51,12 +50,12 @@ impl Engine {
             deno_tls::deno_tls::init(),
             toxo_setup::init(),
         ];
-        let initial_cwd = current_dir().unwrap();
+
         rustls::crypto::aws_lc_rs::default_provider()
             .install_default()
             .unwrap();
-        // let module_loader = deno_core::FsModuleLoader;
-        let module_loader = module_loader::ToxoModuleLoader::new();
+
+        let module_loader = module_loader::ToxoModuleLoader::new(&initial_cwd);
         let runtime = JsRuntime::new(RuntimeOptions {
             module_loader: Some(Rc::new(module_loader)),
             extensions,

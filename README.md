@@ -8,6 +8,8 @@ Micro JS Runtime.
 - HTTP imports
 - data: imports
 - Import attributes (json, text, bytes)
+- Import maps (Detected automatically from the `import_map.json` file in the
+  current directory)
 
 ## Web APIs supported
 

@@ -1,6 +1,3 @@
-// Copyright 2018-2025 the Deno authors. MIT license.
-
-use std::env::current_dir;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -21,11 +18,13 @@ use deno_permissions::SysDescriptorParseError;
 use deno_permissions::WriteDescriptor;
 
 #[derive(Debug)]
-pub struct RuntimePermissionDescriptorParser {}
+pub struct RuntimePermissionDescriptorParser {
+    current_dir: PathBuf,
+}
 
 impl RuntimePermissionDescriptorParser {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(current_dir: PathBuf) -> Self {
+        Self { current_dir }
     }
 
     fn resolve_from_cwd(&self, path: &str) -> Result<PathBuf, PathResolveError> {
@@ -36,13 +35,9 @@ impl RuntimePermissionDescriptorParser {
         if path.is_absolute() {
             Ok(normalize_path(path))
         } else {
-            let cwd = self.resolve_cwd()?;
+            let cwd = &self.current_dir;
             Ok(normalize_path(cwd.join(path)))
         }
-    }
-
-    fn resolve_cwd(&self) -> Result<PathBuf, PathResolveError> {
-        current_dir().map_err(PathResolveError::CwdResolve)
     }
 }
 
@@ -96,7 +91,7 @@ impl deno_permissions::PermissionDescriptorParser for RuntimePermissionDescripto
     }
 
     fn parse_deny_run_descriptor(&self, text: &str) -> Result<DenyRunDescriptor, PathResolveError> {
-        Ok(DenyRunDescriptor::parse(text, &self.resolve_cwd()?))
+        Ok(DenyRunDescriptor::parse(text, &self.current_dir))
     }
 
     fn parse_ffi_descriptor(&self, text: &str) -> Result<FfiDescriptor, PathResolveError> {
@@ -130,12 +125,13 @@ impl deno_permissions::PermissionDescriptorParser for RuntimePermissionDescripto
 #[cfg(test)]
 mod test {
     use deno_permissions::PermissionDescriptorParser;
+    use std::env::current_dir;
 
     use super::*;
 
     #[test]
     fn test_handle_empty_value() {
-        let parser = RuntimePermissionDescriptorParser::new();
+        let parser = RuntimePermissionDescriptorParser::new(current_dir().unwrap());
         assert!(parser.parse_read_descriptor("").is_err());
         assert!(parser.parse_write_descriptor("").is_err());
         assert!(parser.parse_env_descriptor("").is_err());

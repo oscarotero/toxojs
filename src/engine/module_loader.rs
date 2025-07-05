@@ -10,9 +10,12 @@ use deno_error::JsErrorBox;
 use deno_fetch::{Client, ReqBody, create_http_client};
 use http::Request;
 use http_body_util::BodyExt;
+use import_map::{ImportMap, parse_from_json};
 
 pub struct ToxoModuleLoader {
     client: Client,
+    import_map: Option<ImportMap>,
+    initial_url: Url,
 }
 
 impl ModuleLoader for ToxoModuleLoader {
@@ -22,6 +25,19 @@ impl ModuleLoader for ToxoModuleLoader {
         raw_referrer: &str,
         _kind: deno_core::ResolutionKind,
     ) -> Result<ModuleSpecifier, ModuleLoaderError> {
+        let import_map = &self.import_map;
+
+        if let Some(import_map) = import_map {
+            let referrer = if raw_referrer == "." {
+                &self.initial_url
+            } else {
+                &Url::parse(raw_referrer).unwrap()
+            };
+
+            if let Ok(specifier) = import_map.resolve(raw_specifier, &referrer) {
+                return Ok(specifier);
+            }
+        }
         resolve_import(raw_specifier, raw_referrer).map_err(|e| e.into())
     }
 
@@ -87,20 +103,39 @@ impl ModuleLoader for ToxoModuleLoader {
 }
 
 impl ToxoModuleLoader {
-    pub fn new() -> ToxoModuleLoader {
+    pub fn new(initial_cwd: &PathBuf) -> ToxoModuleLoader {
         let user_agent = "Toxeiro";
         let client = create_http_client(user_agent, Default::default()).unwrap();
+        let initial_url = Url::from_file_path(initial_cwd).unwrap();
+        let import_map = initial_cwd.join("import_map.json");
+        let import_map = if import_map.exists() {
+            Some(Url::from_file_path(import_map).unwrap())
+        } else {
+            None
+        };
 
-        ToxoModuleLoader { client }
+        let import_map: Option<ImportMap> = if let Some(url) = import_map {
+            let content = read_file(&url).unwrap();
+            let content = str::from_utf8(&content).unwrap();
+            let map = parse_from_json(url, content).unwrap();
+
+            Some(map.import_map)
+        } else {
+            None
+        };
+
+        ToxoModuleLoader {
+            client,
+            import_map,
+            initial_url,
+        }
     }
 }
 
 fn read_file(specifier: &Url) -> Result<Vec<u8>, JsErrorBox> {
-    let path = specifier.to_file_path().map_err(|_| {
-        JsErrorBox::generic(format!(
-            "Provided module specifier \"{specifier}\" is not a valid file URL."
-        ))
-    })?;
+    let path = specifier
+        .to_file_path()
+        .map_err(|_| JsErrorBox::generic(format!("\"{specifier}\" is not a valid file URL.")))?;
 
     std::fs::read(path).map_err(|source| JsErrorBox::from_err(source))
 }
