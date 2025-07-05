@@ -77,6 +77,7 @@ Micro JS Runtime.
 - FormData
 - localStorage
 - sessionStorage
+- WebAssembly
 
 ```sh
 toxo example.js

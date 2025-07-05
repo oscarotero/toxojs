@@ -7,7 +7,7 @@ fn main() {
     let file_path = match args.get(1) {
         Some(path) => path,
         None => {
-            println!("No file specified!");
+            help();
             return;
         }
     };
@@ -20,4 +20,14 @@ fn main() {
     if let Err(error) = runtime.block_on(result) {
         eprintln!("error: {}", error);
     }
+}
+
+fn help() {
+    let version = env!("CARGO_PKG_VERSION");
+    println!("TOXO {}", version);
+    println!("");
+    println!("Run: toxo <file>");
+    println!("Example: toxo script.js");
+    println!("");
+    println!("Tip: Place an import_map.json file in your current directory to automatically enable import maps.");
 }
