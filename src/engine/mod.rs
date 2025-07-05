@@ -26,7 +26,7 @@ pub struct Engine {
 extension!(
     toxo_setup,
     esm_entry_point = "ext:toxo_setup/bootstrap.js",
-    esm = [dir "src/engine", "bootstrap.js"]
+    esm = [dir "src/js", "bootstrap.js"]
 );
 
 pub mod sys {
