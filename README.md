@@ -3,8 +3,8 @@
 Minimalist JavaScript Runtime.
 
 This project is an experimental JavaScript runtime built as a learning exercise
-in Rust. Most of the code is based on [Deno](https://github.com/denoland/). Huge
-thanks to the Deno team for their amazing open source work!
+in Rust. Most of the code is based on [Deno](https://github.com/denoland/), so
+all credits belong to them.
 
 ## How to use it?
 
