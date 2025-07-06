@@ -86,7 +86,9 @@ toxo example.js
 - Headers
 - FormData
 - localStorage
-  > The data is stored in the `local_storage` file in the same directory as the
-  > main module.
+  > Data stored in the `local_storage` file in the same directory as the main
+  > module.
 - sessionStorage
 - WebAssembly
+- Temporal
+- Intl
