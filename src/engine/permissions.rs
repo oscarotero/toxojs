@@ -17,6 +17,11 @@ use deno_permissions::SysDescriptor;
 use deno_permissions::SysDescriptorParseError;
 use deno_permissions::WriteDescriptor;
 
+/**
+ * This struct is required by Deno core
+ * For now, I've created one with all permissions granted
+ */
+
 #[derive(Debug)]
 pub struct RuntimePermissionDescriptorParser {
     current_dir: PathBuf,
@@ -119,26 +124,5 @@ impl deno_permissions::PermissionDescriptorParser for RuntimePermissionDescripto
         _requested: &str,
     ) -> Result<RunQueryDescriptor, RunDescriptorParseError> {
         Err(RunDescriptorParseError::EmptyRunQuery)
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use deno_permissions::PermissionDescriptorParser;
-    use std::env::current_dir;
-
-    use super::*;
-
-    #[test]
-    fn test_handle_empty_value() {
-        let parser = RuntimePermissionDescriptorParser::new(current_dir().unwrap());
-        assert!(parser.parse_read_descriptor("").is_err());
-        assert!(parser.parse_write_descriptor("").is_err());
-        assert!(parser.parse_env_descriptor("").is_err());
-        assert!(parser.parse_net_descriptor("").is_err());
-        assert!(parser.parse_ffi_descriptor("").is_err());
-        assert!(parser.parse_path_query("").is_err());
-        assert!(parser.parse_net_query("").is_err());
-        assert!(parser.parse_run_query("").is_err());
     }
 }

@@ -11,16 +11,12 @@ use deno_error::JsErrorBox;
 deno_error::js_error_wrapper!(deno_ast::ParseDiagnostic, JsParseDiagnostic, "Error");
 deno_error::js_error_wrapper!(deno_ast::TranspileError, JsTranspileError, "Error");
 
+/** This function is required to transpile the TypeScript code of the extensions */
 pub fn maybe_transpile_source(
     name: ModuleName,
     source: ModuleCodeString,
 ) -> Result<(ModuleCodeString, Option<SourceMapData>), JsErrorBox> {
-    // Always transpile `node:` built-in modules, since they might be TypeScript.
-    let media_type = if name.starts_with("node:") {
-        MediaType::TypeScript
-    } else {
-        MediaType::from_path(Path::new(&name))
-    };
+    let media_type = MediaType::from_path(Path::new(&name));
 
     match media_type {
         MediaType::TypeScript => {}

@@ -64,6 +64,7 @@ impl ModuleLoader for ToxoModuleLoader {
     ) -> Result<ModuleSpecifier, ModuleLoaderError> {
         let import_map = &self.import_map;
 
+        // Use the import_map to resove the module
         if let Some(import_map) = import_map {
             let referrer = if raw_referrer == "." {
                 &self.main_module
@@ -75,6 +76,8 @@ impl ModuleLoader for ToxoModuleLoader {
                 return Ok(specifier);
             }
         }
+
+        // Use default import
         resolve_import(raw_specifier, raw_referrer).map_err(|e| e.into())
     }
 
@@ -99,7 +102,12 @@ impl ModuleLoader for ToxoModuleLoader {
                     }
                     ModuleType::Json
                 }
-                RequestedModuleType::Other(ty) => ModuleType::Other(ty.clone()),
+                RequestedModuleType::Other(_ty) => {
+                    return Err(ModuleLoaderError::Unsupported {
+                        specifier: Box::new(specifier),
+                        maybe_referrer: None,
+                    });
+                }
                 _ => {
                     if has_extension(&specifier, "wasm") {
                         ModuleType::Wasm
@@ -120,6 +128,7 @@ impl ModuleLoader for ToxoModuleLoader {
                 read_url(&specifier, &client).await
             };
 
+            // Return the code if it's found or an error
             match code {
                 Ok(code) => {
                     let module = ModuleSource::new(
@@ -139,6 +148,7 @@ impl ModuleLoader for ToxoModuleLoader {
     }
 }
 
+/** Read the code from the file system */
 fn read_file(specifier: &Url) -> Result<Vec<u8>, JsErrorBox> {
     let path = specifier
         .to_file_path()
@@ -147,6 +157,7 @@ fn read_file(specifier: &Url) -> Result<Vec<u8>, JsErrorBox> {
     std::fs::read(path).map_err(|source| JsErrorBox::from_err(source))
 }
 
+/** Parse data urls */
 fn read_data(specifier: &Url, module_type: &ModuleType) -> Result<Vec<u8>, JsErrorBox> {
     let url = DataUrl::process(specifier.as_str());
     match url {
@@ -176,6 +187,7 @@ fn read_data(specifier: &Url, module_type: &ModuleType) -> Result<Vec<u8>, JsErr
     }
 }
 
+/** Read the code from an Url */
 async fn read_url(specifier: &Url, client: &Client) -> Result<Vec<u8>, JsErrorBox> {
     let body = ReqBody::empty();
     let mut request = Request::new(body);
