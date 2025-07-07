@@ -11,6 +11,8 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
 
+use crate::engine::module_loader::ToxoModuleLoader;
+use crate::engine::module_loader::ToxoModuleLoaderOptions;
 use crate::engine::permissions::RuntimePermissionDescriptorParser;
 use crate::ops::bootstrap;
 use crate::ops::deno_tty;
@@ -34,7 +36,7 @@ pub mod sys {
 }
 
 impl Engine {
-    pub fn new(main_module: Url) -> Engine {
+    pub fn new(main_module: Url, vendor_folder: Option<PathBuf>) -> Engine {
         // Calculate the current directory
         let main_directory = if main_module.scheme() == "file" {
             main_module
@@ -80,7 +82,12 @@ impl Engine {
 
         // Initialize the module loader
         let user_agent = get_user_agent();
-        let module_loader = module_loader::ToxoModuleLoader::new(main_module.clone(), &user_agent);
+        let options = ToxoModuleLoaderOptions {
+            main_module: main_module.clone(),
+            user_agent: user_agent.to_string(),
+            vendor_folder,
+        };
+        let module_loader = ToxoModuleLoader::new(options);
 
         // Create the JavaScript runtime
         let runtime = JsRuntime::new(RuntimeOptions {

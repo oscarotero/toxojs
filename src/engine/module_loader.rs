@@ -12,15 +12,23 @@ use http::Request;
 use http_body_util::BodyExt;
 use import_map::{ImportMap, parse_from_json};
 
+pub struct ToxoModuleLoaderOptions {
+    pub main_module: Url,
+    pub user_agent: String,
+    pub vendor_folder: Option<PathBuf>,
+}
+
 pub struct ToxoModuleLoader {
     client: Client,
     import_map: Option<ImportMap>,
     main_module: Url,
+    vendor_folder: Option<PathBuf>,
 }
 
 impl ToxoModuleLoader {
-    pub fn new(main_module: Url, user_agent: &str) -> ToxoModuleLoader {
-        let client = create_http_client(user_agent, Default::default()).unwrap();
+    pub fn new(options: ToxoModuleLoaderOptions) -> ToxoModuleLoader {
+        let client = create_http_client(&options.user_agent, Default::default()).unwrap();
+        let main_module = options.main_module;
 
         // Detect the import map only if it's in the filesystem
         let import_map = if main_module.scheme() == "file" {
@@ -49,7 +57,8 @@ impl ToxoModuleLoader {
         ToxoModuleLoader {
             client,
             import_map,
-            main_module: main_module,
+            main_module,
+            vendor_folder: options.vendor_folder,
         }
     }
 }
@@ -89,6 +98,7 @@ impl ModuleLoader for ToxoModuleLoader {
     ) -> ModuleLoadResponse {
         let specifier = specifier.clone();
         let client = self.client.clone();
+        let vendor_folder = self.vendor_folder.clone();
 
         let fut = async move {
             // Calculate the module type
@@ -124,7 +134,11 @@ impl ModuleLoader for ToxoModuleLoader {
             } else if specifier.scheme() == "data" {
                 read_data(&specifier, &module_type)
             } else {
-                read_url(&specifier, &client).await
+                if let Some(vendor_folder) = vendor_folder {
+                    read_vendor_url(&specifier, &client, &vendor_folder).await
+                } else {
+                    read_url(&specifier, &client).await
+                }
             };
 
             // Return the code if it's found or an error
@@ -211,6 +225,29 @@ async fn read_url(specifier: &Url, client: &Client) -> Result<Vec<u8>, JsErrorBo
     let bytes = body.unwrap().to_bytes();
     let code: Vec<u8> = bytes.into();
     Ok(code)
+}
+
+/** Read the code from the vendor code, or download it if it wasn't cached yet */
+async fn read_vendor_url(
+    specifier: &Url,
+    client: &Client,
+    vendor_folder: &PathBuf,
+) -> Result<Vec<u8>, JsErrorBox> {
+    let vendor_path = format!("{}{}", specifier.host().unwrap(), specifier.path());
+    let vendor_path = vendor_folder.join(vendor_path);
+
+    if vendor_path.exists() {
+        std::fs::read(vendor_path).map_err(|source| JsErrorBox::from_err(source))
+    } else {
+        let result = read_url(specifier, client).await;
+        if let Ok(ref contents) = result {
+            if let Some(parent) = vendor_path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            let _ = std::fs::write(&vendor_path, contents);
+        }
+        result
+    }
 }
 
 fn has_extension(url: &Url, extension: &str) -> bool {

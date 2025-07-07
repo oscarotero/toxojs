@@ -1,4 +1,4 @@
-use deno_core::resolve_url_or_path;
+use deno_core::{resolve_url_or_path, url::Url};
 use dotenvy::from_filename;
 use std::{
     env::{self, current_dir},
@@ -18,19 +18,33 @@ fn main() {
         }
     };
 
-    // Convert the first argument to Url
-    let main_module = resolve_url_or_path(&main_module, &current_dir().unwrap()).unwrap();
+    let cwd = current_dir().unwrap();
 
-    if main_module.scheme() == "file" {
-        let env_file = main_module.join(".env").unwrap();
-        let env_file = env_file.to_file_path().unwrap();
+    // Convert the first argument to Url
+    let main_module = resolve_url_or_path(&main_module, &cwd).unwrap();
+
+    // Load the environment variables
+    if let Some(env_file) = resolve_local_path(".env", &main_module) {
         if env_file.exists() {
             load_env_variables(env_file);
         }
     }
 
+    // Define the vendor folder
+    let vendor_folder = if let Ok(path) = env::var("TOXO_VENDOR") {
+        if path.to_lowercase() == "none" {
+            None
+        } else {
+            Some(path)
+        }
+    } else {
+        Some(String::from("vendor"))
+    };
+
+    let vendor_folder = vendor_folder.and_then(|folder| resolve_local_path(&folder, &main_module));
+
     // Create and run the JavaScript engine
-    let mut engine = Engine::new(main_module);
+    let mut engine = Engine::new(main_module, vendor_folder);
     let result = engine.run();
     let runtime = Builder::new_current_thread().enable_all().build().unwrap();
 
@@ -66,5 +80,14 @@ fn load_env_variables(path: PathBuf) {
             ),
             _ => eprintln!("Unknown failure occurred with the .env file"),
         },
+    }
+}
+
+fn resolve_local_path(path: &str, main_module: &Url) -> Option<PathBuf> {
+    if main_module.scheme() == "file" {
+        let resolved = main_module.join(path).unwrap();
+        Some(resolved.to_file_path().unwrap())
+    } else {
+        None
     }
 }
