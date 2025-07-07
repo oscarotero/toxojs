@@ -5,46 +5,36 @@ on:
 
 # Thanks: https://rakhim.exotext.com/how-to-build-and-publish-multi-platform-rust-binaries
 jobs:
-  linux_windows:
+  linux:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
-      - name: Install Linux and Windows Cross Compilers
-        run: sudo apt-get install --yes --no-install-recommends musl-tools gcc-mingw-w64-x86-64-win32
-
-      - name: Install rustup targets
-        run: rustup target add x86_64-unknown-linux-musl x86_64-pc-windows-gnu
+      - name: Install Linux Compiler
+        run: sudo apt-get install --yes --no-install-recommends musl-tools
 
       - name: Build the executable
-        run: cargo build --release --target x86_64-unknown-linux-musl --target x86_64-pc-windows-gnu
+        run: cargo build --release --target x86_64-unknown-linux-musl
 
       - name: Tar x86_64 binary
         run: tar -czvf toxo-gnu-linux-x86_64.tar.gz -C target/x86_64-unknown-linux-musl/release toxo
 
-      - name: Zip windows binary
-        run: zip -j toxo-windows.zip target/x86_64-pc-windows-gnu/release/toxo.exe
-
       - name: Generate SHA256 checksums
         run: |
           shasum -a 256 toxo-gnu-linux-x86_64.tar.gz > toxo-gnu-linux-x86_64.tar.gz.sha256
-          shasum -a 256 toxo-windows.zip > toxo-windows.zip.sha256
 
       - name: Upload release binaries
         uses: alexellis/upload-assets@0.4.0
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          asset_paths: '["toxo-gnu-linux-x86_64.tar.gz", "toxo-windows.zip", "toxo-gnu-linux-x86_64.tar.gz.sha256", "toxo-windows.zip.sha256"]'
+          asset_paths: '["toxo-gnu-linux-x86_64.tar.gz", "toxo-gnu-linux-x86_64.tar.gz.sha256"]'
   mac:
     runs-on: macos-latest
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
-
-      - name: Install Linux and Windows Cross Compilers
-        run: sudo apt-get install --yes --no-install-recommends musl-tools gcc-mingw-w64-x86-64-win32
 
       - name: Install rustup targets
         run: rustup target add x86_64-apple-darwin aarch64-apple-darwin
