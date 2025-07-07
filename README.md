@@ -12,16 +12,88 @@ all credits belong to them.
 toxo example.js
 ```
 
+## Why another runtime?
+
+This is just an experimental project to learn Rust and Deno internals. I never
+would be able to build this by myself. The idea is to create a JavaScript
+runtime under the following assumptions:
+
+### No tooling
+
+Many runtimes like Deno or Bun include built-in tools for testing, benchmarking,
+script running, compiling, package management, formatting, and more. TOXO, on
+the other hand, is solely a JavaScript runner. It doesn't support subcommands
+(there's no `toxo run [filename]`); you simply use `toxo [filename]`. This
+design choice helps keep the project focused and minimal.
+
+### No TypeScript support
+
+TypeScript is a powerful tool, but it introduces additional complexity: it
+creates a parallel ecosystem and adds extra steps between writing and executing
+your code. It requires configuration, supports JSX by default (which may need
+further setup), and relies on source maps and caching systems to manage
+compilation and debugging. By supporting only web-standard formats that run
+natively in the JavaScript engine, TOXO avoids this complexity: what you write
+is exactly what gets executed.
+
+### Standard imports
+
+TOXO supports modern, standard ES module imports from URLs, data URLs, and local
+files. You can use import attributes to load modules as JSON, text, bytes, or
+even WASM files. Import maps are also supported so you can use bare imports in
+your code.
+
+CommonJS modules and package registries such as NPM or JSR are not supported.
+These systems are centralized, non-standard, and introduce vendor lock-in with
+complex and opaque module resolution mechanisms.
+
+### Only Web APIs
+
+TOXO implements only standard Web APIs available in browsers, enabling you to
+write code that runs consistently across environments. There is no support for
+`node:*` modules or a global `Deno.*` object with additional features. See the
+list below to know the Web APIs supported currently.
+
+### No configuration file
+
+There is no `toxo.json` or `package.json` file. Just as web technologies
+typically don't require configuration files, TOXO follows the same philosophy.
+
+However, two files are loaded automatically if present in the same directory as
+the main module:
+
+- `import_map.json`: If available, this file is automatically loaded and used
+  for module resolution.
+- `.env`: Environment variables can be used to change some behaviors (such as
+  the User Agent for HTTP requests or the value of `navigator.languages`). If a
+  `.env` file exists, it is automatically loaded.
+
+### Vendoring by default
+
+Unlike Node, which requires running `npm install` to fetch dependencies, or
+Deno, which caches dependencies in a centralized folder, TOXO automatically
+vendors all remote dependencies in a `vendor` folder located alongside your main
+module. This process happens transparently and there's no need to modify module
+URLs or update your `import_map.json`. For example, a module imported from
+`https://example.com/modules/main.js` will be saved as
+`vendor/example.com/modules.main.js`. This approach enables offline execution
+and makes all dependencies easily accessible and editable.
+
+You can disable vendoring by setting the `TOXO_VENDOR=none` environment
+variable.
+
 ## Environment variables
 
-TOXO doesn't have a configuration file. But it detects automatically the `.env`
-file if it's in the same directory as the main module. You can use environment
-variables to configure some behaviors.
+TOXO does not require a configuration file. However, if a `.env` file is present
+in the same directory as the main module, it will be loaded automatically. You
+can use environment variables in this file to configure certain behaviors.
 
-- `TOXO_LANGUAGES`: Comma-separated list of languages to configure the
-  `Navigator.language` and `Navigator.languages` values. By default is `en-US`.
-- `TOXO_USER_AGENT`: To configure the value returned by `Navigator.userAgent`
-  and used to fetch the URL modules. By default is `TOXO/{version}`.
+- `TOXO_LANGUAGES`: Comma-separated list of languages to set the values of
+  `Navigator.language` and `Navigator.languages`. Defaults to `en-US`.
+- `TOXO_USER_AGENT`: Sets the value returned by `Navigator.userAgent` and used
+  for HTTP requests when fetching modules. Defaults to `TOXO/{version}`.
+- `TOXO_VENDOR`: Specifies the folder name for vendoring remote modules. Set to
+  `none` to disable vendoring. Defaults to `vendor`.
 
 ## Import supported
 
