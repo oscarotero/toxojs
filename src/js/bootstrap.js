@@ -414,8 +414,8 @@ propNonEnumerableLazyLoaded(
 // import {
 //   op_bootstrap_language,
 //   op_bootstrap_numcpus,
-//   op_bootstrap_user_agent,
 // } from "ext:core/ops";
+import { op_toxo_languages, op_toxo_user_agent } from "ext:core/ops";
 
 class Navigator {
   constructor() {
@@ -429,9 +429,9 @@ class Navigator {
         evaluate: ObjectPrototypeIsPrototypeOf(NavigatorPrototype, this),
         keys: [
           // "hardwareConcurrency",
-          // "userAgent",
-          // "language",
-          // "languages",
+          "userAgent",
+          "language",
+          "languages",
         ],
       }),
       inspectOptions,
@@ -441,19 +441,24 @@ class Navigator {
 
 const navigator = webidl.createBranded(Navigator);
 
-// function memoizeLazy(f) {
-//   let v_ = null;
-//   return () => {
-//     if (v_ === null) {
-//       v_ = f();
-//     }
-//     return v_;
-//   };
-// }
+function memoizeLazy(f) {
+  let v_ = null;
+  return () => {
+    if (v_ === null) {
+      v_ = f();
+    }
+    return v_;
+  };
+}
 
 // const numCpus = memoizeLazy(() => op_bootstrap_numcpus());
-// const userAgent = memoizeLazy(() => op_bootstrap_user_agent());
-// const language = memoizeLazy(() => op_bootstrap_language());
+const userAgent = memoizeLazy(() => op_toxo_user_agent());
+const languages = memoizeLazy(() =>
+  op_toxo_languages()
+    .split(",")
+    .map((lang) => lang.trim())
+    .filter((lang) => lang.length > 0)
+);
 
 ObjectDefineProperties(Navigator.prototype, {
   gpu: {
@@ -476,33 +481,33 @@ ObjectDefineProperties(Navigator.prototype, {
   //       return numCpus();
   //     },
   //   },
-  //   userAgent: {
-  //     __proto__: null,
-  //     configurable: true,
-  //     enumerable: true,
-  //     get() {
-  //       webidl.assertBranded(this, NavigatorPrototype);
-  //       return userAgent();
-  //     },
-  //   },
-  //   language: {
-  //     __proto__: null,
-  //     configurable: true,
-  //     enumerable: true,
-  //     get() {
-  //       webidl.assertBranded(this, NavigatorPrototype);
-  //       return language();
-  //     },
-  //   },
-  //   languages: {
-  //     __proto__: null,
-  //     configurable: true,
-  //     enumerable: true,
-  //     get() {
-  //       webidl.assertBranded(this, NavigatorPrototype);
-  //       return [language()];
-  //     },
-  //   },
+  userAgent: {
+    __proto__: null,
+    configurable: true,
+    enumerable: true,
+    get() {
+      webidl.assertBranded(this, NavigatorPrototype);
+      return userAgent();
+    },
+  },
+  language: {
+    __proto__: null,
+    configurable: true,
+    enumerable: true,
+    get() {
+      webidl.assertBranded(this, NavigatorPrototype);
+      return languages()[0] || "en-US";
+    },
+  },
+  languages: {
+    __proto__: null,
+    configurable: true,
+    enumerable: true,
+    get() {
+      webidl.assertBranded(this, NavigatorPrototype);
+      return languages();
+    },
+  },
 });
 
 const NavigatorPrototype = Navigator.prototype;

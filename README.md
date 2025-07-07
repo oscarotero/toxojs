@@ -18,6 +18,11 @@ TOXO doesn't have a configuration file. But it detects automatically the `.env`
 file if it's in the same directory as the main module. You can use environment
 variables to configure some behaviors.
 
+- `TOXO_LANGUAGES`: Comma-separated list of languages to configure the
+  `Navigator.language` and `Navigator.languages` values. By default is `en-US`.
+- `TOXO_USER_AGENT`: To configure the value returned by `Navigator.userAgent`
+  and used to fetch the URL modules. By default is `TOXO/{version}`.
+
 ## Import supported
 
 - File imports

@@ -19,8 +19,7 @@ pub struct ToxoModuleLoader {
 }
 
 impl ToxoModuleLoader {
-    pub fn new(main_module: Url) -> ToxoModuleLoader {
-        let user_agent = "Toxeiro";
+    pub fn new(main_module: Url, user_agent: &str) -> ToxoModuleLoader {
         let client = create_http_client(user_agent, Default::default()).unwrap();
 
         // Detect the import map only if it's in the filesystem

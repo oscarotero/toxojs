@@ -3,9 +3,11 @@ use deno_core::JsRuntime;
 use deno_core::RuntimeOptions;
 use deno_core::error::AnyError;
 use deno_core::extension;
+use deno_core::op2;
 use deno_core::url::Url;
 use deno_permissions::PermissionsContainer;
 use deno_tls::rustls;
+use std::env;
 use std::env::current_dir;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -25,9 +27,28 @@ pub struct Engine {
 
 extension!(
     toxo_setup,
+    ops = [
+        op_toxo_languages,
+        op_toxo_user_agent
+    ],
     esm_entry_point = "ext:toxo_setup/bootstrap.js",
     esm = [dir "src/js", "bootstrap.js"]
 );
+
+#[op2]
+#[string]
+pub fn op_toxo_languages() -> String {
+    match env::var("TOXO_LANGUAGES") {
+        Ok(languages) => languages,
+        Err(_) => String::from("en-US"),
+    }
+}
+
+#[op2]
+#[string]
+pub fn op_toxo_user_agent() -> String {
+    get_user_agent()
+}
 
 pub mod sys {
     #[allow(clippy::disallowed_types)] // ok, definition
@@ -73,7 +94,8 @@ impl Engine {
             .unwrap();
 
         // Initialize the module loader
-        let module_loader = module_loader::ToxoModuleLoader::new(main_module.clone());
+        let user_agent = get_user_agent();
+        let module_loader = module_loader::ToxoModuleLoader::new(main_module.clone(), &user_agent);
 
         // Create the JavaScript runtime
         let runtime = JsRuntime::new(RuntimeOptions {
@@ -128,5 +150,16 @@ impl Engine {
         let main_result = runtime.mod_evaluate(main_id);
         runtime.run_event_loop(Default::default()).await?;
         main_result.await.map_err(AnyError::from)
+    }
+}
+
+fn get_user_agent() -> String {
+    match env::var("TOXO_USER_AGENT") {
+        Ok(languages) => languages,
+        Err(_) => {
+            let version = env!("CARGO_PKG_VERSION");
+            let user_agent = format!("TOXO/{}", version);
+            user_agent
+        }
     }
 }
