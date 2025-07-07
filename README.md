@@ -14,9 +14,11 @@ toxo example.js
 
 ## Why another runtime?
 
-This is just an experimental project to learn Rust and Deno internals. I never
-would be able to build this by myself. The idea is to create a JavaScript
-runtime under the following assumptions:
+This is an experimental project created to learn Rust and explore the internals
+of Deno. The majority of the code is based on Deno, and I am deeply grateful to
+its authors for building such an impressive runtime, making it open source, and
+enabling others to create custom runtimes using their work. The goal of TOXO is
+to build a JavaScript runtime with the following design principles:
 
 ### No tooling
 
