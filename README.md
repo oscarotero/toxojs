@@ -20,6 +20,7 @@ toxo example.js
 - Import attributes (json, text, bytes)
 - Import maps (Place a `import_map.json` file in the same directory as the entry
   point)
+- WASM (Import a module with the `.wasm` extension)
 
 ## Web APIs supported
 
