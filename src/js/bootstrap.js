@@ -225,8 +225,8 @@ propNonEnumerable("FormData", formData.FormData);
 /** deno_webstorage */
 import * as webStorage from "ext:deno_webstorage/01_webstorage.js";
 
-propWritable("localStorage", webStorage.localStorage());
-propWritable("sessionStorage", webStorage.sessionStorage());
+propGetterOnly("localStorage", webStorage.localStorage);
+propGetterOnly("sessionStorage", webStorage.sessionStorage);
 
 /** deno_webgpu */
 import { loadWebGPU } from "ext:deno_webgpu/00_init.js";
@@ -410,11 +410,11 @@ propNonEnumerableLazyLoaded(
   loadWebGPU,
 );
 
+/** Globals */
+propGetterOnly("self", () => globalThis);
+propGetterOnly("window", () => globalThis);
+
 /** Navigator API */
-// import {
-//   op_bootstrap_language,
-//   op_bootstrap_numcpus,
-// } from "ext:core/ops";
 import { op_toxo_languages, op_toxo_user_agent } from "ext:core/ops";
 
 class Navigator {
