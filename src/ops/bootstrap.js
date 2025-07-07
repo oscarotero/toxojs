@@ -410,6 +410,13 @@ import * as nav from "ext:toxo_navigator/navigator.js";
 propNonEnumerable("Navigator", nav.Navigator);
 propGetterOnly("navigator", () => nav.navigator);
 
+/** toxo_prompt */
+import * as prompt from "ext:toxo_prompt/prompt.js";
+
+propWritable("alert", prompt.alert);
+propWritable("confirm", prompt.confirm);
+propWritable("prompt", prompt.prompt);
+
 /** Globals */
 propGetterOnly("self", () => globalThis);
 propGetterOnly("window", () => globalThis);

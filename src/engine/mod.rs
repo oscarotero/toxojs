@@ -3,6 +3,7 @@ use deno_core::JsRuntime;
 use deno_core::RuntimeOptions;
 use deno_core::error::AnyError;
 use deno_core::url::Url;
+use deno_io::Stdio;
 use deno_permissions::PermissionsContainer;
 use deno_tls::rustls;
 use std::env::current_dir;
@@ -12,8 +13,10 @@ use std::sync::Arc;
 
 use crate::engine::permissions::RuntimePermissionDescriptorParser;
 use crate::ops::bootstrap;
+use crate::ops::deno_tty;
 use crate::ops::navigator;
 use crate::ops::navigator::get_user_agent;
+use crate::ops::prompt;
 
 pub mod module_loader;
 pub mod permissions;
@@ -49,6 +52,7 @@ impl Engine {
         let permissions = PermissionsContainer::allow_all(Arc::new(parser));
 
         let extensions: Vec<Extension> = vec![
+            // Deno extensions
             deno_telemetry::deno_telemetry::init(),
             deno_webidl::deno_webidl::init(),
             deno_console::deno_console::init(),
@@ -60,7 +64,12 @@ impl Engine {
             deno_crypto::deno_crypto::lazy_init(),
             deno_net::deno_net::lazy_init::<PermissionsContainer>(),
             deno_tls::deno_tls::init(),
+            deno_io::deno_io::lazy_init(),
+            // Deno runtime ops
+            deno_tty::deno_tty::init(),
+            // Toxo custom extensions
             navigator::toxo_navigator::init(),
+            prompt::toxo_prompt::init(),
             bootstrap::toxo_setup::init(),
         ];
 
@@ -118,6 +127,7 @@ impl Engine {
                     Default::default(),
                     Default::default(),
                 ),
+                deno_io::deno_io::args(Some(Stdio::default())),
             ])
             .unwrap();
 

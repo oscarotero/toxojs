@@ -142,3 +142,6 @@ variables to configure some behaviors.
 - GPUTextureView
 - GPUTextureUsage
 - GPUValidationError
+- alert
+- confirm
+- prompt
