@@ -12,6 +12,12 @@ all credits belong to them.
 toxo example.js
 ```
 
+## Environment variables
+
+TOXO doesn't have a configuration file. But it detects automatically the `.env`
+file if it's in the same directory as the main module. You can use environment
+variables to configure some behaviors.
+
 ## Import supported
 
 - File imports
