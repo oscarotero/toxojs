@@ -58,6 +58,7 @@ impl Engine {
             deno_console::deno_console::init(),
             deno_url::deno_url::init(),
             deno_web::deno_web::lazy_init::<PermissionsContainer>(),
+            deno_webgpu::deno_webgpu::init(),
             deno_fetch::deno_fetch::lazy_init::<PermissionsContainer>(),
             deno_webstorage::deno_webstorage::lazy_init(),
             deno_crypto::deno_crypto::lazy_init(),

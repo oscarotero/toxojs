@@ -1,3 +1,51 @@
+import { core, primordials } from "ext:core/mod.js";
+
+const {
+  ObjectDefineProperties,
+  ObjectPrototypeIsPrototypeOf,
+  SymbolFor,
+} = primordials;
+
+function propNonEnumerable(name, value) {
+  Object.defineProperty(
+    globalThis,
+    name,
+    core.propNonEnumerable(value),
+  );
+}
+
+function propNonEnumerableLazyLoaded(name, getter, loadFn) {
+  Object.defineProperty(
+    globalThis,
+    name,
+    core.propNonEnumerableLazyLoaded(getter, loadFn),
+  );
+}
+
+function propWritable(name, value) {
+  Object.defineProperty(
+    globalThis,
+    name,
+    core.propWritable(value),
+  );
+}
+
+function propReadOnly(name, value) {
+  Object.defineProperty(
+    globalThis,
+    name,
+    core.propReadOnly(value),
+  );
+}
+
+function propGetterOnly(name, getter) {
+  Object.defineProperty(
+    globalThis,
+    name,
+    core.propGetterOnly(getter),
+  );
+}
+
 /** deno_webidl */
 import * as webidl from "ext:deno_webidl/00_webidl.js";
 
@@ -12,37 +60,18 @@ Object.defineProperty(globalThis, webidl.brand, {
 import * as console from "ext:deno_console/01_console.js";
 const Deno = globalThis.Deno || {};
 
-Object.defineProperty(globalThis, "console", {
-  value: new console.Console((msg, level) => Deno.core.print(msg, level > 1)),
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable(
+  "console",
+  new console.Console((msg, level) => core.print(msg, level > 1)),
+);
 
 /** deno_url */
 import * as url from "ext:deno_url/00_url.js";
 import * as urlPattern from "ext:deno_url/01_urlpattern.js";
 
-Object.defineProperty(globalThis, "URL", {
-  value: url.URL,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "URLSearchParams", {
-  value: url.URLSearchParams,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "URLPattern", {
-  value: urlPattern.URLPattern,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("URL", url.URL);
+propNonEnumerable("URLSearchParams", url.URLSearchParams);
+propNonEnumerable("URLPattern", urlPattern.URLPattern);
 
 /** deno_web */
 import * as infra from "ext:deno_web/00_infra.js";
@@ -65,391 +94,111 @@ import * as performance from "ext:deno_web/15_performance.js";
 import * as imageData from "ext:deno_web/16_image_data.js";
 
 // deno_web (abortSignal)
-Object.defineProperty(globalThis, "AbortController", {
-  value: abortSignal.AbortController,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "AbortSignal", {
-  value: abortSignal.AbortSignal,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("AbortController", abortSignal.AbortController);
+propNonEnumerable("AbortSignal", abortSignal.AbortSignal);
 
 // deno_web (base64)
-Object.defineProperty(globalThis, "atob", {
-  value: base64.atob,
-  enumerable: true,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "btoa", {
-  value: base64.btoa,
-  enumerable: true,
-  configurable: true,
-  writable: true,
-});
+propWritable("atob", base64.atob);
+propWritable("btoa", base64.btoa);
 
 // deno_web (compression)
-Object.defineProperty(globalThis, "CompressionStream", {
-  value: compression.CompressionStream,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "DecompressionStream", {
-  value: compression.DecompressionStream,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("CompressionStream", compression.CompressionStream);
+propNonEnumerable("DecompressionStream", compression.DecompressionStream);
 
 // deno_web (DOMException)
-Object.defineProperty(globalThis, "DOMException", {
-  value: domException.DOMException,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("DOMException", domException.DOMException);
 
 // deno_web (encoding)
-Object.defineProperty(globalThis, "TextDecoder", {
-  value: encoding.TextDecoder,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "TextEncoder", {
-  value: encoding.TextEncoder,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "TextDecoderStream", {
-  value: encoding.TextDecoderStream,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "TextEncoderStream", {
-  value: encoding.TextEncoderStream,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("TextDecoder", encoding.TextDecoder);
+propNonEnumerable("TextEncoder", encoding.TextEncoder);
+propNonEnumerable("TextDecoderStream", encoding.TextDecoderStream);
+propNonEnumerable("TextEncoderStream", encoding.TextEncoderStream);
 
 // deno_web (event)
-Object.defineProperty(globalThis, "CloseEvent", {
-  value: event.CloseEvent,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "CustomEvent", {
-  value: event.CustomEvent,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "ErrorEvent", {
-  value: event.ErrorEvent,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "Event", {
-  value: event.Event,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "EventTarget", {
-  value: event.EventTarget,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "MessageEvent", {
-  value: event.MessageEvent,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "PromiseRejectionEvent", {
-  value: event.PromiseRejectionEvent,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "ProgressEvent", {
-  value: event.ProgressEvent,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "reportError", {
-  value: event.reportError,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("CloseEvent", event.CloseEvent);
+propNonEnumerable("CustomEvent", event.CustomEvent);
+propNonEnumerable("ErrorEvent", event.ErrorEvent);
+propNonEnumerable("Event", event.Event);
+propNonEnumerable("EventTarget", event.EventTarget);
+propNonEnumerable("MessageEvent", event.MessageEvent);
+propNonEnumerable("PromiseRejectionEvent", event.PromiseRejectionEvent);
+propNonEnumerable("ProgressEvent", event.ProgressEvent);
+propWritable("reportError", event.reportError);
 
 // deno_web (file)
-Object.defineProperty(globalThis, "Blob", {
-  value: file.Blob,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "File", {
-  value: file.File,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("Blob", file.Blob);
+propNonEnumerable("File", file.File);
 
 // deno_web (fileReader)
-Object.defineProperty(globalThis, "FileReader", {
-  value: fileReader.FileReader,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("FileReader", fileReader.FileReader);
 
 // deno_web (imageData)
-Object.defineProperty(globalThis, "ImageData", {
-  value: imageData.ImageData,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("ImageData", imageData.ImageData);
 
 // deno_web (messagePort)
-Object.defineProperty(globalThis, "MessageChannel", {
-  value: messagePort.MessageChannel,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "MessagePort", {
-  value: messagePort.MessagePort,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "structuredClone", {
-  value: structuredClone.structuredClone,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("MessageChannel", messagePort.MessageChannel);
+propNonEnumerable("MessagePort", messagePort.MessagePort);
+propWritable("structuredClone", structuredClone.structuredClone);
 
 // deno_web (performance)
-Object.defineProperty(globalThis, "Performance", {
-  value: performance.Performance,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "PerformanceEntry", {
-  value: performance.PerformanceEntry,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "PerformanceMark", {
-  value: performance.PerformanceMark,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "PerformanceMeasure", {
-  value: performance.PerformanceMeasure,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "performance", {
-  value: performance.performance,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("Performance", performance.Performance);
+propNonEnumerable("PerformanceEntry", performance.PerformanceEntry);
+propNonEnumerable("PerformanceMark", performance.PerformanceMark);
+propNonEnumerable("PerformanceMeasure", performance.PerformanceMeasure);
+propWritable("performance", performance.performance);
 
 // deno_web (streams)
-Object.defineProperty(globalThis, "ByteLengthQueuingStrategy", {
-  value: streams.ByteLengthQueuingStrategy,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "CountQueuingStrategy", {
-  value: streams.CountQueuingStrategy,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "ReadableStream", {
-  value: streams.ReadableStream,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "ReadableStreamDefaultReader", {
-  value: streams.ReadableStreamDefaultReader,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "TransformStream", {
-  value: streams.TransformStream,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "WritableStream", {
-  value: streams.WritableStream,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "WritableStreamDefaultWriter", {
-  value: streams.WritableStreamDefaultWriter,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "WritableStreamDefaultController", {
-  value: streams.WritableStreamDefaultController,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "ReadableStreamDefaultController", {
-  value: streams.ReadableStreamDefaultController,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "ReadableStreamBYOBReader", {
-  value: streams.ReadableStreamBYOBReader,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "ReadableStreamBYOBRequest", {
-  value: streams.ReadableStreamBYOBRequest,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "ReadableStreamDefaultController", {
-  value: streams.ReadableStreamDefaultController,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "TransformStreamDefaultController", {
-  value: streams.TransformStreamDefaultController,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable(
+  "ByteLengthQueuingStrategy",
+  streams.ByteLengthQueuingStrategy,
+);
+propNonEnumerable("CountQueuingStrategy", streams.CountQueuingStrategy);
+propNonEnumerable("ReadableStream", streams.ReadableStream);
+propNonEnumerable(
+  "ReadableStreamDefaultReader",
+  streams.ReadableStreamDefaultReader,
+);
+propNonEnumerable("TransformStream", streams.TransformStream);
+propNonEnumerable("WritableStream", streams.WritableStream);
+propNonEnumerable(
+  "WritableStreamDefaultWriter",
+  streams.WritableStreamDefaultWriter,
+);
+propNonEnumerable(
+  "WritableStreamDefaultController",
+  streams.WritableStreamDefaultController,
+);
+propNonEnumerable(
+  "ReadableStreamDefaultController",
+  streams.ReadableStreamDefaultController,
+);
+propNonEnumerable("ReadableStreamBYOBReader", streams.ReadableStreamBYOBReader);
+propNonEnumerable(
+  "ReadableStreamBYOBRequest",
+  streams.ReadableStreamBYOBRequest,
+);
+propNonEnumerable(
+  "ReadableStreamDefaultController",
+  streams.ReadableStreamDefaultController,
+);
+propNonEnumerable(
+  "TransformStreamDefaultController",
+  streams.TransformStreamDefaultController,
+);
 
 // deno_web (timers)
-Object.defineProperty(globalThis, "clearInterval", {
-  value: timers.clearInterval,
-  enumerable: true,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "clearTimeout", {
-  value: timers.clearTimeout,
-  enumerable: true,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "setInterval", {
-  value: timers.setInterval,
-  enumerable: true,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "setTimeout", {
-  value: timers.setTimeout,
-  enumerable: true,
-  configurable: true,
-  writable: true,
-});
+propWritable("clearInterval", timers.clearInterval);
+propWritable("clearTimeout", timers.clearTimeout);
+propWritable("setInterval", timers.setInterval);
+propWritable("setTimeout", timers.setTimeout);
 
 /** deno_crypto */
 import * as crypto from "ext:deno_crypto/00_crypto.js";
 
-Object.defineProperty(globalThis, "CryptoKey", {
-  value: crypto.CryptoKey,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "crypto", {
-  value: crypto.crypto,
-  enumerable: false,
-  configurable: true,
-  writable: false,
-});
-
-Object.defineProperty(globalThis, "Crypto", {
-  value: crypto.Crypto,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "SubtleCrypto", {
-  value: crypto.SubtleCrypto,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("CryptoKey", crypto.CryptoKey);
+propNonEnumerable("Crypto", crypto.Crypto);
+propNonEnumerable("SubtleCrypto", crypto.SubtleCrypto);
+propReadOnly("crypto", crypto.crypto);
 
 /** deno_net */
 import * as net from "ext:deno_net/01_net.js";
@@ -466,57 +215,300 @@ import * as eventSource from "ext:deno_fetch/27_eventsource.js";
 // Set up the callback for Wasm streaming ops
 Deno.core.setWasmStreamingCallback(fetch.handleWasmStreaming);
 
-Object.defineProperty(globalThis, "fetch", {
-  value: fetch.fetch,
-  enumerable: true,
-  configurable: true,
-  writable: true,
-});
+propWritable("fetch", fetch.fetch);
 
-Object.defineProperty(globalThis, "Request", {
-  value: request.Request,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "Response", {
-  value: response.Response,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "Headers", {
-  value: headers.Headers,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
-
-Object.defineProperty(globalThis, "FormData", {
-  value: formData.FormData,
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+propNonEnumerable("Request", request.Request);
+propNonEnumerable("Response", response.Response);
+propNonEnumerable("Headers", headers.Headers);
+propNonEnumerable("FormData", formData.FormData);
 
 /** deno_webstorage */
 import * as webStorage from "ext:deno_webstorage/01_webstorage.js";
 
-Object.defineProperty(globalThis, "localStorage", {
-  value: webStorage.localStorage(),
-  enumerable: false,
-  configurable: true,
-  writable: true,
+propWritable("localStorage", webStorage.localStorage());
+propWritable("sessionStorage", webStorage.sessionStorage());
+
+/** deno_webgpu */
+import { loadWebGPU } from "ext:deno_webgpu/00_init.js";
+import * as webgpuSurface from "ext:deno_webgpu/02_surface.js";
+
+propNonEnumerableLazyLoaded("GPU", (webgpu) => webgpu.GPU, loadWebGPU);
+propNonEnumerableLazyLoaded(
+  "GPUAdapter",
+  (webgpu) => webgpu.GPUAdapter,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUAdapterInfo",
+  (webgpu) => webgpu.GPUAdapterInfo,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUBuffer",
+  (webgpu) => webgpu.GPUBuffer,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUBufferUsage",
+  (webgpu) => webgpu.GPUBufferUsage,
+  loadWebGPU,
+);
+propNonEnumerable("GPUCanvasContext", webgpuSurface.GPUCanvasContext);
+propNonEnumerableLazyLoaded(
+  "GPUColorWrite",
+  (webgpu) => webgpu.GPUColorWrite,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUCommandBuffer",
+  (webgpu) => webgpu.GPUCommandBuffer,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUCommandEncoder",
+  (webgpu) => webgpu.GPUCommandEncoder,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUComputePassEncoder",
+  (webgpu) => webgpu.GPUComputePassEncoder,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUComputePipeline",
+  (webgpu) => webgpu.GPUComputePipeline,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUDevice",
+  (webgpu) => webgpu.GPUDevice,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUDeviceLostInfo",
+  (webgpu) => webgpu.GPUDeviceLostInfo,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUError",
+  (webgpu) => webgpu.GPUError,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUBindGroup",
+  (webgpu) => webgpu.GPUBindGroup,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUBindGroupLayout",
+  (webgpu) => webgpu.GPUBindGroupLayout,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUInternalError",
+  (webgpu) => webgpu.GPUInternalError,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUPipelineError",
+  (webgpu) => webgpu.GPUPipelineError,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUUncapturedErrorEvent",
+  (webgpu) => webgpu.GPUUncapturedErrorEvent,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUPipelineLayout",
+  (webgpu) => webgpu.GPUPipelineLayout,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUQueue",
+  (webgpu) => webgpu.GPUQueue,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUQuerySet",
+  (webgpu) => webgpu.GPUQuerySet,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUMapMode",
+  (webgpu) => webgpu.GPUMapMode,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUOutOfMemoryError",
+  (webgpu) => webgpu.GPUOutOfMemoryError,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPURenderBundle",
+  (webgpu) => webgpu.GPURenderBundle,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPURenderBundleEncoder",
+  (webgpu) => webgpu.GPURenderBundleEncoder,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPURenderPassEncoder",
+  (webgpu) => webgpu.GPURenderPassEncoder,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPURenderPipeline",
+  (webgpu) => webgpu.GPURenderPipeline,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUSampler",
+  (webgpu) => webgpu.GPUSampler,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUShaderModule",
+  (webgpu) => webgpu.GPUShaderModule,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUShaderStage",
+  (webgpu) => webgpu.GPUShaderStage,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUSupportedFeatures",
+  (webgpu) => webgpu.GPUSupportedFeatures,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUSupportedLimits",
+  (webgpu) => webgpu.GPUSupportedLimits,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUTexture",
+  (webgpu) => webgpu.GPUTexture,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUTextureView",
+  (webgpu) => webgpu.GPUTextureView,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUTextureUsage",
+  (webgpu) => webgpu.GPUTextureUsage,
+  loadWebGPU,
+);
+propNonEnumerableLazyLoaded(
+  "GPUValidationError",
+  (webgpu) => webgpu.GPUValidationError,
+  loadWebGPU,
+);
+
+/** Navigator API */
+// import {
+//   op_bootstrap_language,
+//   op_bootstrap_numcpus,
+//   op_bootstrap_user_agent,
+// } from "ext:core/ops";
+
+class Navigator {
+  constructor() {
+    webidl.illegalConstructor();
+  }
+
+  [SymbolFor("Deno.privateCustomInspect")](inspect, inspectOptions) {
+    return inspect(
+      console.createFilteredInspectProxy({
+        object: this,
+        evaluate: ObjectPrototypeIsPrototypeOf(NavigatorPrototype, this),
+        keys: [
+          // "hardwareConcurrency",
+          // "userAgent",
+          // "language",
+          // "languages",
+        ],
+      }),
+      inspectOptions,
+    );
+  }
+}
+
+const navigator = webidl.createBranded(Navigator);
+
+// function memoizeLazy(f) {
+//   let v_ = null;
+//   return () => {
+//     if (v_ === null) {
+//       v_ = f();
+//     }
+//     return v_;
+//   };
+// }
+
+// const numCpus = memoizeLazy(() => op_bootstrap_numcpus());
+// const userAgent = memoizeLazy(() => op_bootstrap_user_agent());
+// const language = memoizeLazy(() => op_bootstrap_language());
+
+ObjectDefineProperties(Navigator.prototype, {
+  gpu: {
+    __proto__: null,
+    configurable: true,
+    enumerable: true,
+    get() {
+      webidl.assertBranded(this, NavigatorPrototype);
+      const webgpu = loadWebGPU();
+      webgpu.initGPU();
+      return webgpu.gpu;
+    },
+  },
+  //   hardwareConcurrency: {
+  //     __proto__: null,
+  //     configurable: true,
+  //     enumerable: true,
+  //     get() {
+  //       webidl.assertBranded(this, NavigatorPrototype);
+  //       return numCpus();
+  //     },
+  //   },
+  //   userAgent: {
+  //     __proto__: null,
+  //     configurable: true,
+  //     enumerable: true,
+  //     get() {
+  //       webidl.assertBranded(this, NavigatorPrototype);
+  //       return userAgent();
+  //     },
+  //   },
+  //   language: {
+  //     __proto__: null,
+  //     configurable: true,
+  //     enumerable: true,
+  //     get() {
+  //       webidl.assertBranded(this, NavigatorPrototype);
+  //       return language();
+  //     },
+  //   },
+  //   languages: {
+  //     __proto__: null,
+  //     configurable: true,
+  //     enumerable: true,
+  //     get() {
+  //       webidl.assertBranded(this, NavigatorPrototype);
+  //       return [language()];
+  //     },
+  //   },
 });
 
-Object.defineProperty(globalThis, "sessionStorage", {
-  value: webStorage.sessionStorage(),
-  enumerable: false,
-  configurable: true,
-  writable: true,
-});
+const NavigatorPrototype = Navigator.prototype;
+
+propNonEnumerable("Navigator", Navigator);
+propGetterOnly("navigator", () => navigator);
 
 // Remove Deno global
 Object.defineProperty(globalThis, "Deno", {
