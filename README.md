@@ -40,10 +40,10 @@ is exactly what gets executed.
 
 ### Standard imports
 
-TOXO supports modern, standard ES module imports from URLs, data URLs, and local
-files. You can use import attributes to load modules as JSON, text, bytes, or
-even WASM files. Import maps are also supported so you can use bare imports in
-your code.
+TOXO supports modern, standard ES module imports from URLs and local files. You
+can use import attributes to load modules as JSON, text, bytes, or even WASM
+files. Import maps are also supported so you can use bare imports in your code.
+[More info below](#import-supported).
 
 CommonJS modules and package registries such as NPM or JSR are not supported.
 These systems are centralized, non-standard, and introduce vendor lock-in with
@@ -53,13 +53,15 @@ complex and opaque module resolution mechanisms.
 
 TOXO implements only standard Web APIs available in browsers, enabling you to
 write code that runs consistently across environments. There is no support for
-`node:*` modules or a global `Deno.*` object with additional features. See the
-list below to know the Web APIs supported currently.
+`node:*` modules or a global `Toxo.*` object with additional features.
+[See the list below](#web-apis-supported) to know the Web APIs supported
+currently.
 
 ### No configuration file
 
-There is no `toxo.json` or `package.json` file. Just as web technologies
-typically don't require configuration files, TOXO follows the same philosophy.
+There is no `toxo.json` or support for `package.json` file. Just as web
+technologies typically don't require configuration files, TOXO follows the same
+philosophy.
 
 However, two files are loaded automatically if present in the same directory as
 the main module:
@@ -69,6 +71,7 @@ the main module:
 - `.env`: Environment variables can be used to change some behaviors (such as
   the User Agent for HTTP requests or the value of `navigator.languages`). If a
   `.env` file exists, it is automatically loaded.
+  [More info about environment variables](#environment-variables)
 
 ### Vendoring by default
 
@@ -83,6 +86,11 @@ and makes all dependencies easily accessible and editable.
 
 You can disable vendoring by setting the `TOXO_VENDOR=none` environment
 variable.
+
+Related to this, data stored using the `localStorage` API is saved in a
+`local_storage` file in the same directory as the main module. You can add this
+file to your `.gitignore` if you want to keep it local, or commit it to your
+repository to share the stored data.
 
 ## Environment variables
 
