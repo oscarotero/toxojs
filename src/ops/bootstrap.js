@@ -1,10 +1,4 @@
-import { core, primordials } from "ext:core/mod.js";
-
-const {
-  ObjectDefineProperties,
-  ObjectPrototypeIsPrototypeOf,
-  SymbolFor,
-} = primordials;
+import { core } from "ext:core/mod.js";
 
 function propNonEnumerable(name, value) {
   Object.defineProperty(
@@ -410,99 +404,15 @@ propNonEnumerableLazyLoaded(
   loadWebGPU,
 );
 
+/** toxo_navigator */
+import * as nav from "ext:toxo_navigator/navigator.js";
+
+propNonEnumerable("Navigator", nav.Navigator);
+propGetterOnly("navigator", () => nav.navigator);
+
 /** Globals */
 propGetterOnly("self", () => globalThis);
 propGetterOnly("window", () => globalThis);
-
-/** Navigator API */
-import { op_toxo_languages, op_toxo_user_agent } from "ext:core/ops";
-
-class Navigator {
-  constructor() {
-    webidl.illegalConstructor();
-  }
-
-  [SymbolFor("Deno.privateCustomInspect")](inspect, inspectOptions) {
-    return inspect(
-      console.createFilteredInspectProxy({
-        object: this,
-        evaluate: ObjectPrototypeIsPrototypeOf(NavigatorPrototype, this),
-        keys: [
-          "userAgent",
-          "language",
-          "languages",
-        ],
-      }),
-      inspectOptions,
-    );
-  }
-}
-
-const navigator = webidl.createBranded(Navigator);
-
-function memoizeLazy(f) {
-  let v_ = null;
-  return () => {
-    if (v_ === null) {
-      v_ = f();
-    }
-    return v_;
-  };
-}
-
-const userAgent = memoizeLazy(() => op_toxo_user_agent());
-const languages = memoizeLazy(() =>
-  op_toxo_languages()
-    .split(",")
-    .map((lang) => lang.trim())
-    .filter((lang) => lang.length > 0)
-);
-
-ObjectDefineProperties(Navigator.prototype, {
-  gpu: {
-    __proto__: null,
-    configurable: true,
-    enumerable: true,
-    get() {
-      webidl.assertBranded(this, NavigatorPrototype);
-      const webgpu = loadWebGPU();
-      webgpu.initGPU();
-      return webgpu.gpu;
-    },
-  },
-  userAgent: {
-    __proto__: null,
-    configurable: true,
-    enumerable: true,
-    get() {
-      webidl.assertBranded(this, NavigatorPrototype);
-      return userAgent();
-    },
-  },
-  language: {
-    __proto__: null,
-    configurable: true,
-    enumerable: true,
-    get() {
-      webidl.assertBranded(this, NavigatorPrototype);
-      return languages()[0] || "en-US";
-    },
-  },
-  languages: {
-    __proto__: null,
-    configurable: true,
-    enumerable: true,
-    get() {
-      webidl.assertBranded(this, NavigatorPrototype);
-      return languages();
-    },
-  },
-});
-
-const NavigatorPrototype = Navigator.prototype;
-
-propNonEnumerable("Navigator", Navigator);
-propGetterOnly("navigator", () => navigator);
 
 // Remove Deno global
 Object.defineProperty(globalThis, "Deno", {
