@@ -11,8 +11,8 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
-      - name: Install Linux Compiler
-        run: sudo apt-get install --yes --no-install-recommends musl-tools
+      - name: Install rustup targets
+        run: rustup target add x86_64-unknown-linux-musl
 
       - name: Build the executable
         run: cargo build --release --target x86_64-unknown-linux-musl
