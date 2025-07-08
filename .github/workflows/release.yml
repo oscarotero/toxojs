@@ -14,59 +14,105 @@ permissions:
   statuses: read
 
 jobs:
-  linux:
+  linux_x86_64:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
       - name: Install rustup targets
-        run: rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
+        run: rustup target add x86_64-unknown-linux-gnu
 
       - name: Build the executable
-        run: cargo build --release --target=x86_64-unknown-linux-gnu --target=aarch64-unknown-linux-gnu
+        run: cargo build --release --target=x86_64-unknown-linux-gnu
 
-      - name: Tar Binaries
-        run: |
-          tar -czvf toxo-x86_64-unknown-linux-gnu.tar.gz -C target/x86_64-unknown-linux-gnu/release toxo
-          tar -czvf toxo-aarch64-unknown-linux-gnu.tar.gz -C target/aarch64-unknown-linux-gnu/release toxo
+      - name: Tar Binary
+        run: tar -czvf toxo-x86_64-unknown-linux-gnu.tar.gz -C target/x86_64-unknown-linux-gnu/release toxo
 
-      - name: Generate SHA256 checksums
-        run: |
-          shasum -a 256 toxo-x86_64-unknown-linux-gnu.tar.gz > toxo-x86_64-unknown-linux-gnu.tar.gz.sha256
-          shasum -a 256 toxo-aarch64-unknown-linux-gnu.tar.gz > toxo-aarch64-unknown-linux-gnu.tar.gz.sha256
+      - name: Generate SHA256 checksum
+        run: shasum -a 256 toxo-x86_64-unknown-linux-gnu.tar.gz > toxo-x86_64-unknown-linux-gnu.tar.gz.sha256
 
       - name: Upload release binaries
         uses: alexellis/upload-assets@0.4.0
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          asset_paths: '["toxo-x86_64-unknown-linux-gnu.tar.gz", "toxo-aarch64-unknown-linux-gnu.tar.gz", "toxo-x86_64-unknown-linux-gnu.tar.gz.sha256", "toxo-aarch64-unknown-linux-gnu.tar.gz.sha256"]'
-  mac:
+          asset_paths: '["toxo-x86_64-unknown-linux-gnu.tar.gz", "toxo-x86_64-unknown-linux-gnu.tar.gz.sha256"]'
+
+  linux_aarch64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Install compilers
+        uses: sudo apt -yq --no-install-suggests --no-install-recommends install g++-5-aarch64-linux-gnu gcc-5-aarch64-linux-gnu g++-5-multilib libc6-arm64-cross
+
+      - name: Install rustup targets
+        run: rustup target add aarch64-unknown-linux-gnu
+
+      - name: Build the executable
+        run: cargo build --release --target=aarch64-unknown-linux-gnu
+
+      - name: Tar Binary
+        run: tar -czvf toxo-aarch64-unknown-linux-gnu.tar.gz -C target/aarch64-unknown-linux-gnu/release toxo
+
+      - name: Generate SHA256 checksum
+        run: shasum -a 256 toxo-aarch64-unknown-linux-gnu.tar.gz > toxo-aarch64-unknown-linux-gnu.tar.gz.sha256
+
+      - name: Upload release binaries
+        uses: alexellis/upload-assets@0.4.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_paths: '["toxo-aarch64-unknown-linux-gnu.tar.gz", "toxo-aarch64-unknown-linux-gnu.tar.gz.sha256"]'
+
+  mac_x86_64:
     runs-on: macos-latest
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
       - name: Install rustup targets
-        run: rustup target add x86_64-apple-darwin aarch64-apple-darwin
+        run: rustup target add x86_64-apple-darwin
 
       - name: Build the executables
-        run: cargo build --release --target=x86_64-apple-darwin --target=aarch64-apple-darwin
+        run: cargo build --release --target=x86_64-apple-darwin
 
-      - name: Tar binaries
-        run: |
-          tar -czvf toxo-x86_64-apple-darwin.tar.gz -C target/x86_64-apple-darwin/release toxo
-          tar -czvf toxo-aarch64-apple-darwin.tar.gz -C target/aarch64-apple-darwin/release toxo
+      - name: Tar binary
+        run: tar -czvf toxo-x86_64-apple-darwin.tar.gz -C target/x86_64-apple-darwin/release toxo
 
-      - name: Generate SHA256 checksums
-        run: |
-          shasum -a 256 toxo-x86_64-apple-darwin.tar.gz > toxo-x86_64-apple-darwin.gz.sha256
-          shasum -a 256 toxo-aarch64-apple-darwin.tar.gz > toxo-aarch64-apple-darwin.tar.gz.sha256
+      - name: Generate SHA256 checksum
+        run: shasum -a 256 toxo-x86_64-apple-darwin.tar.gz > toxo-x86_64-apple-darwin.gz.sha256
 
       - name: Upload release binaries
         uses: alexellis/upload-assets@0.4.0
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          asset_paths: '["toxo-x86_64-apple-darwin.tar.gz", "toxo-aarch64-apple-darwin.tar.gz", "toxo-x86_64-apple-darwin.tar.gz.sha256", "toxo-aarch64-apple-darwin.tar.gz.sha256"]'
+          asset_paths: '["toxo-x86_64-apple-darwin.tar.gz", "toxo-x86_64-apple-darwin.tar.gz.sha256"]'
+
+  mac_aarch64:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Install rustup targets
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Build the executables
+        run: cargo build --release --target=aarch64-apple-darwin
+
+      - name: Tar binaries
+        run: tar -czvf toxo-aarch64-apple-darwin.tar.gz -C target/aarch64-apple-darwin/release toxo
+
+      - name: Generate SHA256 checksums
+        run: shasum -a 256 toxo-aarch64-apple-darwin.tar.gz > toxo-aarch64-apple-darwin.tar.gz.sha256
+
+      - name: Upload release binaries
+        uses: alexellis/upload-assets@0.4.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_paths: '["toxo-aarch64-apple-darwin.tar.gz", "toxo-aarch64-apple-darwin.tar.gz.sha256"]'
