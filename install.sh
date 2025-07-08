@@ -7,12 +7,10 @@ if [ "$OS" = "Windows_NT" ]; then
   exit 1
 else
 	case $(uname -sm) in
-	"Darwin x86_64") target="macos-x86_64" ;;
-	"Darwin arm64") target="macos-aarch64" ;;
-  *) 
-    echo "Unsupported OS or architecture: $(uname -sm)"
-    exit 1
-    ;;
+	"Darwin x86_64") target="x86_64-apple-darwin" ;;
+	"Darwin arm64") target="aarch64-apple-darwin" ;;
+	"Linux aarch64") target="aarch64-unknown-linux-gnu" ;;
+  *) target="x86_64-unknown-linux-gnu" ;;
 	esac
 fi
 
