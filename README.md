@@ -8,6 +8,14 @@ all credits belong to them.
 
 ## How to use it?
 
+Install TOXO (macOS only):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/oscarotero/toxojs/refs/heads/main/install.sh | sh
+```
+
+Run JavaScript files:
+
 ```sh
 toxo example.js
 ```
