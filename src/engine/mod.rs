@@ -3,9 +3,12 @@ use deno_core::JsRuntime;
 use deno_core::RuntimeOptions;
 use deno_core::error::AnyError;
 use deno_core::url::Url;
+use deno_fs::FileSystemRc;
+use deno_fs::RealFs;
 use deno_io::Stdio;
 use deno_permissions::PermissionsContainer;
 use deno_tls::rustls;
+use std::env;
 use std::env::current_dir;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -16,8 +19,10 @@ use crate::engine::module_loader::ToxoModuleLoaderOptions;
 use crate::engine::permissions::RuntimePermissionDescriptorParser;
 use crate::ops::bootstrap;
 use crate::ops::deno_tty;
+use crate::ops::environment;
+use crate::ops::environment::GlobalVars;
+use crate::ops::filesystem;
 use crate::ops::navigator;
-use crate::ops::navigator::get_user_agent;
 use crate::ops::prompt;
 
 pub mod module_loader;
@@ -52,6 +57,11 @@ impl Engine {
         // Init the engine extensions to provide Web APIs
         let parser = RuntimePermissionDescriptorParser::new(main_directory.clone());
         let permissions = PermissionsContainer::allow_all(Arc::new(parser));
+        let globals = GlobalVars {
+            location: main_module.to_string(),
+            user_agent: get_user_agent(),
+            languages: get_languages(),
+        };
 
         let extensions: Vec<Extension> = vec![
             // Deno extensions
@@ -69,10 +79,13 @@ impl Engine {
             deno_io::deno_io::lazy_init(),
             // Deno runtime ops
             deno_tty::deno_tty::init(),
+            deno_fs::deno_fs::lazy_init::<PermissionsContainer>(),
             // Toxo custom extensions
+            environment::toxo_env::init(globals),
             navigator::toxo_navigator::init(),
             prompt::toxo_prompt::init(),
             bootstrap::toxo_setup::init(),
+            filesystem::toxo_filesystem::init(),
         ];
 
         // This is required by some net related ops
@@ -117,6 +130,7 @@ impl Engine {
         let runtime = &mut self.runtime;
         let specifier = &self.main_module;
         let main_directory = &self.main_directory;
+        let fs: FileSystemRc = Rc::new(RealFs);
 
         //Initialize the extensions configured as lazy_init
         runtime
@@ -135,6 +149,7 @@ impl Engine {
                     Default::default(),
                 ),
                 deno_io::deno_io::args(Some(Stdio::default())),
+                deno_fs::deno_fs::args::<PermissionsContainer>(fs),
             ])
             .unwrap();
 
@@ -143,5 +158,23 @@ impl Engine {
         let main_result = runtime.mod_evaluate(main_id);
         runtime.run_event_loop(Default::default()).await?;
         main_result.await.map_err(AnyError::from)
+    }
+}
+
+fn get_languages() -> String {
+    match env::var("TOXO_LANGUAGES") {
+        Ok(languages) => languages,
+        Err(_) => String::from("en-US"),
+    }
+}
+
+fn get_user_agent() -> String {
+    match env::var("TOXO_USER_AGENT") {
+        Ok(languages) => languages,
+        Err(_) => {
+            let version = env!("CARGO_PKG_VERSION");
+            let user_agent = format!("TOXO/{}", version);
+            user_agent
+        }
     }
 }

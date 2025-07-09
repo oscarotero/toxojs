@@ -126,6 +126,16 @@ propNonEnumerable("File", file.File);
 // deno_web (fileReader)
 propNonEnumerable("FileReader", fileReader.FileReader);
 
+// deno_web (location)
+import { op_get_location } from "ext:core/ops";
+location.setLocationHref(op_get_location());
+Object.defineProperty(globalThis, "location", location.locationDescriptor);
+Object.defineProperty(
+  globalThis,
+  "Location",
+  location.locationConstructorDescriptor,
+);
+
 // deno_web (imageData)
 propNonEnumerable("ImageData", imageData.ImageData);
 
@@ -416,6 +426,21 @@ import * as prompt from "ext:toxo_prompt/prompt.js";
 propWritable("alert", prompt.alert);
 propWritable("confirm", prompt.confirm);
 propWritable("prompt", prompt.prompt);
+
+/** toxo_filesystem */
+import * as fs from "ext:toxo_filesystem/filesystem.js";
+
+propNonEnumerable("StorageManager", fs.StorageManager);
+propNonEnumerable("FileSystemHandle", fs.FileSystemHandle);
+propNonEnumerable(
+  "FileSystemDirectoryHandle",
+  fs.FileSystemDirectoryHandle,
+);
+propNonEnumerable("FileSystemFileHandle", fs.FileSystemFileHandle);
+propNonEnumerable(
+  "FileSystemWritableFileStream",
+  fs.FileSystemWritableFileStream,
+);
 
 /** Globals */
 propGetterOnly("self", () => globalThis);
