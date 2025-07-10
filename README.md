@@ -235,3 +235,7 @@ can use environment variables in this file to configure certain behaviors.
 - alert
 - confirm
 - prompt
+- FileSystemHandle
+- FileSystemFileHandle
+- FileSystemDirectoryHandle
+- FileSystemWritableFileStream

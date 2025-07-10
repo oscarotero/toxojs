@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [0.1.1] - Unreleased
 ### Added
 - `location`
+- File System API
 
 ## [0.1.0] - 2025-07-08
 First version
