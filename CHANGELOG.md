@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `location`
 - File System API
 - Web Cache API
+- Websocket (Client side)
 
 ### Changed
 - New `storage` folder to store localStorage and Web cache

@@ -75,6 +75,7 @@ impl Engine {
             deno_webgpu::deno_webgpu::init(),
             deno_fetch::deno_fetch::lazy_init::<PermissionsContainer>(),
             deno_cache::deno_cache::lazy_init(),
+            deno_websocket::deno_websocket::lazy_init::<PermissionsContainer>(),
             deno_webstorage::deno_webstorage::lazy_init(),
             deno_crypto::deno_crypto::lazy_init(),
             deno_net::deno_net::lazy_init::<PermissionsContainer>(),
@@ -154,6 +155,11 @@ impl Engine {
                     ..Default::default()
                 }),
                 deno_cache::deno_cache::args(cache),
+                deno_websocket::deno_websocket::args::<PermissionsContainer>(
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ),
                 deno_webstorage::deno_webstorage::args(Some(storage_directory.clone())),
                 deno_crypto::deno_crypto::args(Default::default()),
                 deno_net::deno_net::args::<PermissionsContainer>(
