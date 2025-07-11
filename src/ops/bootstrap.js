@@ -86,6 +86,7 @@ import * as messagePort from "ext:deno_web/13_message_port.js";
 import * as compression from "ext:deno_web/14_compression.js";
 import * as performance from "ext:deno_web/15_performance.js";
 import * as imageData from "ext:deno_web/16_image_data.js";
+import * as caches from "ext:deno_cache/01_cache.js";
 
 // deno_web (abortSignal)
 propNonEnumerable("AbortController", abortSignal.AbortController);
@@ -414,6 +415,8 @@ propNonEnumerableLazyLoaded(
   loadWebGPU,
 );
 
+/** deno_cache */
+
 /** toxo_navigator */
 import * as nav from "ext:toxo_navigator/navigator.js";
 
@@ -429,6 +432,10 @@ propWritable("prompt", prompt.prompt);
 
 /** toxo_filesystem */
 import * as fs from "ext:toxo_filesystem/filesystem.js";
+
+propGetterOnly("caches", caches.cacheStorage);
+propNonEnumerable("CacheStorage", caches.CacheStorage);
+propNonEnumerable("Cache", caches.Cache);
 
 propNonEnumerable("StorageManager", fs.StorageManager);
 propNonEnumerable("FileSystemHandle", fs.FileSystemHandle);

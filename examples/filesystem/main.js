@@ -13,18 +13,5 @@ await writer.close();
 
 // Read the file back
 const file = await example.getFile();
-console.log(file.name, file.size, file.type);
-console.log(file.lastModified);
-
-const reader = new FileReader();
-
-reader.onload = (event) => {
-  console.log("File content:", event.target.result);
-};
-reader.onerror = (error) => {
-  console.error("Error reading file:", error);
-};
-reader.onloadend = () => {
-  console.log("File reading completed.");
-};
-reader.readAsText(file);
+const contents = await file.text();
+console.log("File contents:", contents);

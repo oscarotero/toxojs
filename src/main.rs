@@ -5,7 +5,7 @@ use std::{
     path::PathBuf,
 };
 use tokio::runtime::Builder;
-use toxo::engine::Engine;
+use toxo::engine::{Engine, EngineOptions};
 
 fn main() {
     // Get the first argument or show help()
@@ -30,8 +30,8 @@ fn main() {
         }
     }
 
-    // Define the vendor folder
-    let vendor_folder = if let Ok(path) = env::var("TOXO_VENDOR") {
+    // Define the vendor directory
+    let vendor_directory = if let Ok(path) = env::var("TOXO_VENDOR") {
         if path.to_lowercase() == "none" {
             None
         } else {
@@ -41,10 +41,22 @@ fn main() {
         Some(String::from("vendor"))
     };
 
-    let vendor_folder = vendor_folder.and_then(|folder| resolve_local_path(&folder, &main_module));
+    // Define the storage folder
+    let storage_directory = if let Some(path) = resolve_local_path("storage", &main_module) {
+        path
+    } else {
+        cwd.join("storage")
+    };
+
+    let vendor_directory =
+        vendor_directory.and_then(|folder| resolve_local_path(&folder, &main_module));
 
     // Create and run the JavaScript engine
-    let mut engine = Engine::new(main_module, vendor_folder);
+    let mut engine = Engine::new(EngineOptions {
+        main_module,
+        vendor_directory,
+        storage_directory,
+    });
     let result = engine.run();
     let runtime = Builder::new_current_thread().enable_all().build().unwrap();
 

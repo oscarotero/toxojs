@@ -95,10 +95,13 @@ and makes all dependencies easily accessible and editable.
 You can disable vendoring by setting the `TOXO_VENDOR=none` environment
 variable.
 
-Related to this, data stored using the `localStorage` API is saved in a
-`local_storage` file in the same directory as the main module. You can add this
-file to your `.gitignore` if you want to keep it local, or commit it to your
-repository to share the stored data.
+### Storage folder
+
+When you use Web APIs like `localStorage` or `Cache`, TOXO automatically creates
+the `storage` folder in the same directory as the main module to store this
+data. This allows to access to this data easily. You can add this file to your
+`.gitignore` if you want to keep it local, or commit it to your repository to
+share the stored data.
 
 ## Environment variables
 
@@ -188,8 +191,7 @@ can use environment variables in this file to configure certain behaviors.
 - Headers
 - FormData
 - localStorage
-  > Data stored in the `local_storage` file in the same directory as the main
-  > module.
+  > Data stored in the `./storage/local_storage` file.
 - sessionStorage
 - WebAssembly
 - Temporal
@@ -239,3 +241,7 @@ can use environment variables in this file to configure certain behaviors.
 - FileSystemFileHandle
 - FileSystemDirectoryHandle
 - FileSystemWritableFileStream
+- caches
+  > Data stored in the `./storage/caches` folder.
+- CacheStorage
+- Cache

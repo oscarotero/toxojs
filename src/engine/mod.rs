@@ -1,3 +1,6 @@
+use deno_cache::CacheImpl;
+use deno_cache::CreateCache;
+use deno_cache::SqliteBackedCache;
 use deno_core::Extension;
 use deno_core::JsRuntime;
 use deno_core::RuntimeOptions;
@@ -9,7 +12,6 @@ use deno_io::Stdio;
 use deno_permissions::PermissionsContainer;
 use deno_tls::rustls;
 use std::env;
-use std::env::current_dir;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -32,7 +34,7 @@ pub mod transpile;
 pub struct Engine {
     runtime: JsRuntime,
     main_module: Url,
-    main_directory: PathBuf,
+    storage_directory: PathBuf,
 }
 
 pub mod sys {
@@ -40,22 +42,22 @@ pub mod sys {
     pub type CliSys = sys_traits::impls::RealSys;
 }
 
+pub struct EngineOptions {
+    pub main_module: Url,
+    pub vendor_directory: Option<PathBuf>,
+    pub storage_directory: PathBuf,
+}
+
 impl Engine {
-    pub fn new(main_module: Url, vendor_folder: Option<PathBuf>) -> Engine {
-        // Calculate the current directory
-        let main_directory = if main_module.scheme() == "file" {
-            main_module
-                .to_file_path()
-                .unwrap()
-                .parent()
-                .unwrap()
-                .to_path_buf()
-        } else {
-            current_dir().unwrap()
-        };
+    pub fn new(options: EngineOptions) -> Engine {
+        let main_module = options.main_module;
+        let vendor_directory = options.vendor_directory;
+        let storage_directory = options.storage_directory;
 
         // Init the engine extensions to provide Web APIs
-        let parser = RuntimePermissionDescriptorParser::new(main_directory.clone());
+        let parser = RuntimePermissionDescriptorParser::new(
+            storage_directory.parent().unwrap().to_path_buf(),
+        );
         let permissions = PermissionsContainer::allow_all(Arc::new(parser));
         let globals = GlobalVars {
             location: main_module.to_string(),
@@ -72,6 +74,7 @@ impl Engine {
             deno_web::deno_web::lazy_init::<PermissionsContainer>(),
             deno_webgpu::deno_webgpu::init(),
             deno_fetch::deno_fetch::lazy_init::<PermissionsContainer>(),
+            deno_cache::deno_cache::lazy_init(),
             deno_webstorage::deno_webstorage::lazy_init(),
             deno_crypto::deno_crypto::lazy_init(),
             deno_net::deno_net::lazy_init::<PermissionsContainer>(),
@@ -98,7 +101,7 @@ impl Engine {
         let options = ToxoModuleLoaderOptions {
             main_module: main_module.clone(),
             user_agent: user_agent.to_string(),
-            vendor_folder,
+            vendor_directory,
         };
         let module_loader = ToxoModuleLoader::new(options);
 
@@ -121,7 +124,7 @@ impl Engine {
         Engine {
             runtime,
             main_module,
-            main_directory,
+            storage_directory,
         }
     }
 
@@ -129,8 +132,16 @@ impl Engine {
     pub async fn run(&mut self) -> Result<(), AnyError> {
         let runtime = &mut self.runtime;
         let specifier = &self.main_module;
-        let main_directory = &self.main_directory;
+        let storage_directory = self.storage_directory.clone();
+        let cache_directory = storage_directory.clone();
         let fs: FileSystemRc = Rc::new(RealFs);
+
+        let create_cache_fn = move || {
+            let sqlite = SqliteBackedCache::new(cache_directory.join("caches"))?;
+            Ok(CacheImpl::Sqlite(sqlite))
+        };
+
+        let cache: Option<CreateCache> = Some(CreateCache(Arc::new(create_cache_fn)));
 
         //Initialize the extensions configured as lazy_init
         runtime
@@ -142,7 +153,8 @@ impl Engine {
                 deno_fetch::deno_fetch::args::<PermissionsContainer>(deno_fetch::Options {
                     ..Default::default()
                 }),
-                deno_webstorage::deno_webstorage::args(Some(main_directory.clone())),
+                deno_cache::deno_cache::args(cache),
+                deno_webstorage::deno_webstorage::args(Some(storage_directory.clone())),
                 deno_crypto::deno_crypto::args(Default::default()),
                 deno_net::deno_net::args::<PermissionsContainer>(
                     Default::default(),

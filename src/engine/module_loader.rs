@@ -15,14 +15,14 @@ use import_map::{ImportMap, parse_from_json};
 pub struct ToxoModuleLoaderOptions {
     pub main_module: Url,
     pub user_agent: String,
-    pub vendor_folder: Option<PathBuf>,
+    pub vendor_directory: Option<PathBuf>,
 }
 
 pub struct ToxoModuleLoader {
     client: Client,
     import_map: Option<ImportMap>,
     main_module: Url,
-    vendor_folder: Option<PathBuf>,
+    vendor_directory: Option<PathBuf>,
 }
 
 impl ToxoModuleLoader {
@@ -58,7 +58,7 @@ impl ToxoModuleLoader {
             client,
             import_map,
             main_module,
-            vendor_folder: options.vendor_folder,
+            vendor_directory: options.vendor_directory,
         }
     }
 }
@@ -98,7 +98,7 @@ impl ModuleLoader for ToxoModuleLoader {
     ) -> ModuleLoadResponse {
         let specifier = specifier.clone();
         let client = self.client.clone();
-        let vendor_folder = self.vendor_folder.clone();
+        let vendor_directory = self.vendor_directory.clone();
 
         let fut = async move {
             // Calculate the module type
@@ -134,8 +134,8 @@ impl ModuleLoader for ToxoModuleLoader {
             } else if specifier.scheme() == "data" {
                 read_data(&specifier, &module_type)
             } else {
-                if let Some(vendor_folder) = vendor_folder {
-                    read_vendor_url(&specifier, &client, &vendor_folder).await
+                if let Some(vendor_directory) = vendor_directory {
+                    read_vendor_url(&specifier, &client, &vendor_directory).await
                 } else {
                     read_url(&specifier, &client).await
                 }
@@ -231,10 +231,10 @@ async fn read_url(specifier: &Url, client: &Client) -> Result<Vec<u8>, JsErrorBo
 async fn read_vendor_url(
     specifier: &Url,
     client: &Client,
-    vendor_folder: &PathBuf,
+    vendor_directory: &PathBuf,
 ) -> Result<Vec<u8>, JsErrorBox> {
     let vendor_path = format!("{}{}", specifier.host().unwrap(), specifier.path());
-    let vendor_path = vendor_folder.join(vendor_path);
+    let vendor_path = vendor_directory.join(vendor_path);
 
     if vendor_path.exists() {
         std::fs::read(vendor_path).map_err(|source| JsErrorBox::from_err(source))

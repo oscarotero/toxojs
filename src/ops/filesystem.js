@@ -6,6 +6,8 @@ import { WritableStream } from "ext:deno_web/06_streams.js";
 import { SeekMode } from "ext:deno_io/12_io.js";
 import { op_get_location } from "ext:core/ops";
 
+// Most of this code is based on https://github.com/jimmywarting/native-file-system-adapter
+
 export const errors = {
   INVALID: ["seeking position failed.", "InvalidStateError"],
   GONE: [

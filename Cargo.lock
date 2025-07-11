@@ -636,6 +636,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
+name = "chrono"
+version = "0.4.41"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c469d952047f47f91b68d1cba3f10d63c11d73e4636f24f08daf0278abf01c4d"
+dependencies = [
+ "num-traits",
+ "serde",
+]
+
+[[package]]
 name = "cipher"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -921,6 +931,35 @@ dependencies = [
  "thiserror 2.0.12",
  "unicode-width 0.2.1",
  "url",
+]
+
+[[package]]
+name = "deno_cache"
+version = "0.142.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5a2bfd6c4759e847dd5a06d21c90f181d658a2a6081acd05fb8b6ed90e112c3"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "deno_core",
+ "deno_error",
+ "futures",
+ "http",
+ "http-body",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "log",
+ "rusqlite",
+ "serde",
+ "sha2",
+ "slab",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-util",
 ]
 
 [[package]]
@@ -5322,6 +5361,7 @@ version = "0.1.0"
 dependencies = [
  "data-url",
  "deno_ast",
+ "deno_cache",
  "deno_console",
  "deno_core",
  "deno_crypto",

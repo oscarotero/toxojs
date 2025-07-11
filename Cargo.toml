@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 data-url = "0.3.1"
 deno_ast = { version = "0.48.1", features = ["emit", "transpiling"] }
+deno_cache = "0.142.0"
 deno_console = "0.209.0"
 deno_core = "0.352.0"
 deno_crypto = "0.223.0"
