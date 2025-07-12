@@ -39,31 +39,6 @@ jobs:
         with:
           asset_paths: '["toxo-x86_64-unknown-linux-gnu.tar.gz", "toxo-x86_64-unknown-linux-gnu.tar.gz.sha256"]'
 
-  linux_aarch64:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v4
-
-      - name: Install rustup targets
-        run: rustup target add aarch64-unknown-linux-gnu
-
-      - name: Build the executable
-        run: cargo build --release --target=aarch64-unknown-linux-gnu --locked
-
-      - name: Tar Binary
-        run: tar -czvf toxo-aarch64-unknown-linux-gnu.tar.gz -C target/aarch64-unknown-linux-gnu/release toxo
-
-      - name: Generate SHA256 checksum
-        run: shasum -a 256 toxo-aarch64-unknown-linux-gnu.tar.gz > toxo-aarch64-unknown-linux-gnu.tar.gz.sha256
-
-      - name: Upload release binaries
-        uses: alexellis/upload-assets@0.4.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          asset_paths: '["toxo-aarch64-unknown-linux-gnu.tar.gz", "toxo-aarch64-unknown-linux-gnu.tar.gz.sha256"]'
-
   mac_x86_64:
     runs-on: macos-latest
     steps:
