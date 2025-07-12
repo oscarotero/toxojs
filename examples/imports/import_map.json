@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "hello": "./hello.js",
+    "hello2": "data:text/javascript,export function hello2 () { console.log('Hello world from data URL!'); }",
+    "path/": "https://cdn.jsdelivr.net/gh/oscarotero/std@1.3.0/path/"
+  }
+}
