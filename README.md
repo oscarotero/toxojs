@@ -113,8 +113,7 @@ can use environment variables in this file to configure certain behaviors.
   `Navigator.language` and `Navigator.languages`. Defaults to `en-US`.
 - `TOXO_USER_AGENT`: Sets the value returned by `Navigator.userAgent` and used
   for HTTP requests when fetching modules. Defaults to `TOXO/{version}`.
-- `TOXO_VENDOR`: Specifies the folder name for vendoring remote modules. Set to
-  `none` to disable vendoring. Defaults to `vendor`.
+- `TOXO_VENDOR`: Set to `none` to disable the automatic vendoring.
 
 ## Import supported
 

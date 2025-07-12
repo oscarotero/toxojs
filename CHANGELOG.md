@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Websocket (Client side)
 
 ### Changed
-- New `storage` folder to store localStorage and Web cache
+- New `storage` folder to store localStorage and Web cache.
+- Don't allow to customize the `vendor` folder. Only to disable it.
 
 ## [0.1.0] - 2025-07-08
 First version

@@ -31,14 +31,22 @@ fn main() {
     }
 
     // Define the vendor directory
-    let vendor_directory = if let Ok(path) = env::var("TOXO_VENDOR") {
-        if path.to_lowercase() == "none" {
-            None
+    let enable_vendor = if let Ok(path) = env::var("TOXO_VENDOR") {
+        if path == "none" {
+            false
+        } else if path.is_empty() {
+            true
         } else {
-            Some(path)
+            panic!("error: Invalid TOXO_VENDOR value ({}). If defined, only 'none' value is allowed.", path);
         }
     } else {
-        Some(String::from("vendor"))
+        true
+    };
+
+    let vendor_directory = if enable_vendor && let Some(path) = resolve_local_path("vendor", &main_module) {
+        Some(path)
+    } else {
+        None
     };
 
     // Define the storage folder
@@ -47,9 +55,6 @@ fn main() {
     } else {
         cwd.join("storage")
     };
-
-    let vendor_directory =
-        vendor_directory.and_then(|folder| resolve_local_path(&folder, &main_module));
 
     // Create and run the JavaScript engine
     let mut engine = MainWorker::new(MainWorkerOptions {
