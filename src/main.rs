@@ -5,7 +5,7 @@ use std::{
     path::PathBuf,
 };
 use tokio::runtime::Builder;
-use toxo::engine::{Engine, EngineOptions};
+use toxo::runtime::main_worker::{MainWorker, MainWorkerOptions};
 
 fn main() {
     // Get the first argument or show help()
@@ -52,10 +52,12 @@ fn main() {
         vendor_directory.and_then(|folder| resolve_local_path(&folder, &main_module));
 
     // Create and run the JavaScript engine
-    let mut engine = Engine::new(EngineOptions {
+    let mut engine = MainWorker::new(MainWorkerOptions {
         main_module,
         vendor_directory,
         storage_directory,
+        languages: get_languages(),
+        user_agent: get_user_agent(),
     });
     let result = engine.run();
     let runtime = Builder::new_current_thread().enable_all().build().unwrap();
@@ -101,5 +103,23 @@ fn resolve_local_path(path: &str, main_module: &Url) -> Option<PathBuf> {
         Some(resolved.to_file_path().unwrap())
     } else {
         None
+    }
+}
+
+fn get_languages() -> String {
+    match env::var("TOXO_LANGUAGES") {
+        Ok(languages) => languages,
+        Err(_) => String::from("en-US"),
+    }
+}
+
+fn get_user_agent() -> String {
+    match env::var("TOXO_USER_AGENT") {
+        Ok(languages) => languages,
+        Err(_) => {
+            let version = env!("CARGO_PKG_VERSION");
+            let user_agent = format!("TOXO/{}", version);
+            user_agent
+        }
     }
 }

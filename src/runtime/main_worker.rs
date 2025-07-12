@@ -11,14 +11,10 @@ use deno_fs::RealFs;
 use deno_io::Stdio;
 use deno_permissions::PermissionsContainer;
 use deno_tls::rustls;
-use std::env;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use crate::engine::module_loader::ToxoModuleLoader;
-use crate::engine::module_loader::ToxoModuleLoaderOptions;
-use crate::engine::permissions::RuntimePermissionDescriptorParser;
 use crate::ops::bootstrap;
 use crate::ops::deno_tty;
 use crate::ops::environment;
@@ -26,12 +22,12 @@ use crate::ops::environment::GlobalVars;
 use crate::ops::filesystem;
 use crate::ops::navigator;
 use crate::ops::prompt;
+use crate::runtime::module_loader::ToxoModuleLoader;
+use crate::runtime::module_loader::ToxoModuleLoaderOptions;
+use crate::runtime::permissions::RuntimePermissionDescriptorParser;
+use crate::runtime::transpile;
 
-pub mod module_loader;
-pub mod permissions;
-pub mod transpile;
-
-pub struct Engine {
+pub struct MainWorker {
     runtime: JsRuntime,
     main_module: Url,
     storage_directory: PathBuf,
@@ -42,27 +38,30 @@ pub mod sys {
     pub type CliSys = sys_traits::impls::RealSys;
 }
 
-pub struct EngineOptions {
+pub struct MainWorkerOptions {
     pub main_module: Url,
     pub vendor_directory: Option<PathBuf>,
     pub storage_directory: PathBuf,
+    pub user_agent: String,
+    pub languages: String,
 }
 
-impl Engine {
-    pub fn new(options: EngineOptions) -> Engine {
+/** The initial worker to run TOXO */
+impl MainWorker {
+    pub fn new(options: MainWorkerOptions) -> MainWorker {
         let main_module = options.main_module;
         let vendor_directory = options.vendor_directory;
         let storage_directory = options.storage_directory;
 
-        // Init the engine extensions to provide Web APIs
+        // Init the extensions to provide Web APIs
         let parser = RuntimePermissionDescriptorParser::new(
             storage_directory.parent().unwrap().to_path_buf(),
         );
         let permissions = PermissionsContainer::allow_all(Arc::new(parser));
         let globals = GlobalVars {
             location: main_module.to_string(),
-            user_agent: get_user_agent(),
-            languages: get_languages(),
+            user_agent: options.user_agent.clone(),
+            languages: options.languages.clone(),
         };
 
         let extensions: Vec<Extension> = vec![
@@ -98,10 +97,9 @@ impl Engine {
             .unwrap();
 
         // Initialize the module loader
-        let user_agent = get_user_agent();
         let options = ToxoModuleLoaderOptions {
             main_module: main_module.clone(),
-            user_agent: user_agent.to_string(),
+            user_agent: options.user_agent.clone(),
             vendor_directory,
         };
         let module_loader = ToxoModuleLoader::new(options);
@@ -122,7 +120,7 @@ impl Engine {
 
         state.put::<PermissionsContainer>(permissions);
 
-        Engine {
+        MainWorker {
             runtime,
             main_module,
             storage_directory,
@@ -176,23 +174,5 @@ impl Engine {
         let main_result = runtime.mod_evaluate(main_id);
         runtime.run_event_loop(Default::default()).await?;
         main_result.await.map_err(AnyError::from)
-    }
-}
-
-fn get_languages() -> String {
-    match env::var("TOXO_LANGUAGES") {
-        Ok(languages) => languages,
-        Err(_) => String::from("en-US"),
-    }
-}
-
-fn get_user_agent() -> String {
-    match env::var("TOXO_USER_AGENT") {
-        Ok(languages) => languages,
-        Err(_) => {
-            let version = env!("CARGO_PKG_VERSION");
-            let user_agent = format!("TOXO/{}", version);
-            user_agent
-        }
     }
 }
