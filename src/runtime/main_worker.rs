@@ -28,12 +28,12 @@ use crate::runtime::permissions::RuntimePermissionDescriptorParser;
 use crate::runtime::transpile;
 
 pub struct MainWorker {
-    runtime: JsRuntime,
-    main_module: Url,
-    vendor_directory: Option<PathBuf>,
-    storage_directory: PathBuf,
-    user_agent: String,
-    languages: String,
+    pub runtime: JsRuntime,
+    pub main_module: Url,
+    pub vendor_directory: Option<PathBuf>,
+    pub storage_directory: PathBuf,
+    pub user_agent: String,
+    pub languages: String,
 }
 
 pub mod sys {
