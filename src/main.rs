@@ -37,17 +37,21 @@ fn main() {
         } else if path.is_empty() {
             true
         } else {
-            panic!("error: Invalid TOXO_VENDOR value ({}). If defined, only 'none' value is allowed.", path);
+            panic!(
+                "error: Invalid TOXO_VENDOR value ({}). If defined, only 'none' value is allowed.",
+                path
+            );
         }
     } else {
         true
     };
 
-    let vendor_directory = if enable_vendor && let Some(path) = resolve_local_path("vendor", &main_module) {
-        Some(path)
-    } else {
-        None
-    };
+    let vendor_directory =
+        if enable_vendor && let Some(path) = resolve_local_path("vendor", &main_module) {
+            Some(path)
+        } else {
+            None
+        };
 
     // Define the storage folder
     let storage_directory = if let Some(path) = resolve_local_path("storage", &main_module) {

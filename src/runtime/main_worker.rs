@@ -30,7 +30,10 @@ use crate::runtime::transpile;
 pub struct MainWorker {
     runtime: JsRuntime,
     main_module: Url,
+    vendor_directory: Option<PathBuf>,
     storage_directory: PathBuf,
+    user_agent: String,
+    languages: String,
 }
 
 pub mod sys {
@@ -97,12 +100,11 @@ impl MainWorker {
             .unwrap();
 
         // Initialize the module loader
-        let options = ToxoModuleLoaderOptions {
+        let module_loader = ToxoModuleLoader::new(ToxoModuleLoaderOptions {
             main_module: main_module.clone(),
             user_agent: options.user_agent.clone(),
-            vendor_directory,
-        };
-        let module_loader = ToxoModuleLoader::new(options);
+            vendor_directory: vendor_directory.clone(),
+        });
 
         // Create the JavaScript runtime
         let runtime = JsRuntime::new(RuntimeOptions {
@@ -124,6 +126,9 @@ impl MainWorker {
             runtime,
             main_module,
             storage_directory,
+            vendor_directory,
+            user_agent: options.user_agent,
+            languages: options.languages,
         }
     }
 
@@ -150,6 +155,7 @@ impl MainWorker {
                     Some(specifier.clone()),
                 ),
                 deno_fetch::deno_fetch::args::<PermissionsContainer>(deno_fetch::Options {
+                    user_agent: self.user_agent.clone(),
                     ..Default::default()
                 }),
                 deno_cache::deno_cache::args(cache),
