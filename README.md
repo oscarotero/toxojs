@@ -8,7 +8,7 @@ all credits belong to them.
 
 ## How to use it?
 
-Install TOXO (macOS only):
+Install TOXO (macOS & Linux only):
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/oscarotero/toxojs/refs/heads/main/install.sh | sh
