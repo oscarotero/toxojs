@@ -60,10 +60,10 @@ complex and opaque module resolution mechanisms.
 ### Only Web APIs
 
 TOXO implements only standard Web APIs available in browsers, enabling you to
-write code that runs consistently across environments. There is no support for
-`node:*` modules or a global `Toxo.*` object with additional features.
-[See the list below](#web-apis-supported) to know the Web APIs supported
-currently.
+write **isomorphic** code that runs consistently across environments. There is
+no support for `node:*` modules or a global `Toxo.*` object with additional
+features. [See the list below](#web-apis-supported) to know the Web APIs
+supported currently.
 
 ### No configuration file
 
